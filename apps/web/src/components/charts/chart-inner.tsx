@@ -1,11 +1,20 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, type IChartApi, type UTCTimestamp, LineSeries, type LineSeriesOptions } from "lightweight-charts";
+import {
+  createChart,
+  createSeriesMarkers,
+  type IChartApi,
+  type UTCTimestamp,
+  LineSeries,
+  type LineSeriesOptions,
+  type SeriesMarker,
+} from "lightweight-charts";
 
 export interface SeriesConfig {
   data: { time: UTCTimestamp; value: number }[];
   options?: Partial<LineSeriesOptions>;
+  markers?: SeriesMarker<UTCTimestamp>[];
 }
 
 interface ChartInnerProps {
@@ -39,6 +48,7 @@ export function ChartInner({ seriesList, height = 250 }: ChartInnerProps) {
     });
 
     chartRef.current = chart;
+    const markerPlugins: { detach: () => void }[] = [];
 
     for (const s of seriesList) {
       const series = chart.addSeries(LineSeries, {
@@ -46,6 +56,9 @@ export function ChartInner({ seriesList, height = 250 }: ChartInnerProps) {
         ...s.options,
       });
       series.setData(s.data);
+      if (s.markers && s.markers.length > 0) {
+        markerPlugins.push(createSeriesMarkers(series, s.markers));
+      }
     }
 
     chart.timeScale().fitContent();
@@ -59,6 +72,7 @@ export function ChartInner({ seriesList, height = 250 }: ChartInnerProps) {
 
     return () => {
       ro.disconnect();
+      markerPlugins.forEach((plugin) => plugin.detach());
       chart.remove();
     };
   }, [seriesList, height]);

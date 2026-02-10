@@ -27,11 +27,12 @@ export interface RecommendRequest {
 
 export interface BacktestMetrics {
   in_range_pct: number;
+  touch_count: number;
+  mean_time_to_exit_hours: number;
   lp_vs_hodl_pct: number;
   max_il_pct: number;
   max_drawdown_pct: number;
   capital_efficiency: number;
-  boundary_touches: number;
 }
 
 export interface CandidateResult {
@@ -41,9 +42,18 @@ export interface CandidateResult {
   tick_lower: number;
   tick_upper: number;
   width_pct: number;
+  requested_width_pct?: number | null;
   metrics: BacktestMetrics;
   score: number;
   insight: string;
+}
+
+export interface ChartMarker {
+  time: number;
+  position: "aboveBar" | "belowBar" | "inBar";
+  color?: string;
+  shape: "circle" | "square" | "arrowUp" | "arrowDown";
+  text: string;
 }
 
 export interface ChartSeries {
@@ -52,6 +62,7 @@ export interface ChartSeries {
   hodl_values: number[];
   il_pct: number[];
   prices: number[];
+  markers: ChartMarker[];
 }
 
 export interface RecommendResponse {

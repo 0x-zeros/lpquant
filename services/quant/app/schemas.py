@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RecommendRequest(BaseModel):
@@ -13,11 +13,12 @@ class RecommendRequest(BaseModel):
 
 class BacktestMetrics(BaseModel):
     in_range_pct: float
+    touch_count: int
+    mean_time_to_exit_hours: float
     lp_vs_hodl_pct: float
     max_il_pct: float
     max_drawdown_pct: float
     capital_efficiency: float
-    boundary_touches: int
 
 
 class CandidateResult(BaseModel):
@@ -27,9 +28,18 @@ class CandidateResult(BaseModel):
     tick_lower: int
     tick_upper: int
     width_pct: float
+    requested_width_pct: float | None = None
     metrics: BacktestMetrics
     score: float
     insight: str
+
+
+class ChartMarker(BaseModel):
+    time: int  # epoch-ms
+    position: str  # "aboveBar" | "belowBar" | "inBar"
+    color: str | None = None
+    shape: str  # "circle" | "square" | "arrowUp" | "arrowDown"
+    text: str
 
 
 class ChartSeries(BaseModel):
@@ -38,6 +48,7 @@ class ChartSeries(BaseModel):
     hodl_values: list[float]
     il_pct: list[float]
     prices: list[float]
+    markers: list[ChartMarker] = Field(default_factory=list)
 
 
 class RecommendResponse(BaseModel):

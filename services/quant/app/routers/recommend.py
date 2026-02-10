@@ -62,6 +62,13 @@ def _build_candidate(
 
     width_pct = (aligned_pb - aligned_pa) / current_price * 100.0
 
+    requested_width_pct: float | None = None
+    if label.startswith("extreme_") and label.endswith("pct"):
+        try:
+            requested_width_pct = float(label.replace("extreme_", "").replace("pct", ""))
+        except ValueError:
+            requested_width_pct = None
+
     return {
         "strategy": label,
         "pa": aligned_pa,
@@ -69,6 +76,7 @@ def _build_candidate(
         "tick_lower": tick_lower,
         "tick_upper": tick_upper,
         "width_pct": round(width_pct, 4),
+        "requested_width_pct": requested_width_pct,
     }
 
 
@@ -81,6 +89,7 @@ def _to_candidate_result(cand: dict) -> CandidateResult:
         tick_lower=cand["tick_lower"],
         tick_upper=cand["tick_upper"],
         width_pct=cand["width_pct"],
+        requested_width_pct=cand.get("requested_width_pct"),
         metrics=cand["metrics"],
         score=cand["score"],
         insight=cand["insight"],
@@ -123,11 +132,16 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
     if req.tick_spacing <= 0:
         raise HTTPException(status_code=400, detail="tick_spacing must be positive")
 
+    sort_idx = np.argsort(timestamps)
+    timestamps = timestamps[sort_idx]
+    closes = closes[sort_idx]
+
     current_price = req.current_price
     tick_spacing = req.tick_spacing
     fee_rate = req.fee_rate
     capital = req.capital_usd
     profile = req.profile
+    p0_price = float(closes[0])
 
     # ------------------------------------------------------------------
     # 2. Generate candidate ranges from requested strategies
@@ -178,7 +192,7 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
             timestamps=timestamps,
             pa=cand["pa"],
             pb=cand["pb"],
-            p0=current_price,
+            p0=p0_price,
             capital=capital,
             fee_rate=fee_rate,
         )

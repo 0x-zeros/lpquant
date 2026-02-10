@@ -121,11 +121,15 @@ def run_backtest(
     hodl_token_y = capital / 2.0  # amount of token Y (stablecoin side)
 
     in_range_count = 0
-    boundary_touches = 0
+    touch_count = 0
     prev_in_range: bool | None = None
+    entry_time: float | None = None
+    exit_durations_ms: list[float] = []
     peak_lp = capital
     max_drawdown = 0.0
+    max_drawdown_idx: int | None = None
     max_il = 0.0
+    max_il_idx: int | None = None
 
     for i in range(n):
         price = float(closes[i])
@@ -148,6 +152,7 @@ def run_backtest(
         # Track max IL (most negative value)
         if il < max_il:
             max_il = il
+            max_il_idx = i
 
         # Drawdown from LP peak
         if lp_val > peak_lp:
@@ -155,17 +160,34 @@ def run_backtest(
         dd = (peak_lp - lp_val) / peak_lp * 100.0 if peak_lp > 0 else 0.0
         if dd > max_drawdown:
             max_drawdown = dd
+            max_drawdown_idx = i
 
         # In-range tracking
         currently_in_range = pa <= price <= pb
         if currently_in_range:
             in_range_count += 1
-        # Boundary touch: transition from in-range to out-of-range or vice-versa
-        if prev_in_range is not None and currently_in_range != prev_in_range:
-            boundary_touches += 1
+        # Track entry/exit for touch count and mean time-to-exit
+        if prev_in_range is None:
+            if currently_in_range:
+                entry_time = float(timestamps[i])
+        else:
+            if not prev_in_range and currently_in_range:
+                entry_time = float(timestamps[i])
+            elif prev_in_range and not currently_in_range:
+                touch_count += 1
+                if entry_time is not None:
+                    exit_durations_ms.append(float(timestamps[i]) - entry_time)
+                    entry_time = None
         prev_in_range = currently_in_range
 
     in_range_pct = (in_range_count / n) * 100.0 if n > 0 else 0.0
+
+    if prev_in_range and entry_time is not None:
+        exit_durations_ms.append(float(timestamps[-1]) - entry_time)
+
+    mean_time_to_exit_hours = (
+        (float(np.mean(exit_durations_ms)) / 3_600_000.0) if exit_durations_ms else 0.0
+    )
 
     # LP vs HODL pct (final values)
     final_lp = float(lp_values[-1])
@@ -180,12 +202,35 @@ def run_backtest(
 
     metrics = BacktestMetrics(
         in_range_pct=round(in_range_pct, 2),
+        touch_count=touch_count,
+        mean_time_to_exit_hours=round(mean_time_to_exit_hours, 2),
         lp_vs_hodl_pct=round(lp_vs_hodl_pct, 2),
         max_il_pct=round(abs(max_il), 2),  # report as positive number
         max_drawdown_pct=round(max_drawdown, 2),
         capital_efficiency=round(capital_efficiency, 2),
-        boundary_touches=boundary_touches,
     )
+
+    markers: list[dict[str, Any]] = []
+    if max_drawdown_idx is not None:
+        markers.append(
+            {
+                "time": int(timestamps[max_drawdown_idx]),
+                "position": "aboveBar",
+                "color": "#ef4444",
+                "shape": "arrowDown",
+                "text": "Max drawdown",
+            }
+        )
+    if max_il_idx is not None:
+        markers.append(
+            {
+                "time": int(timestamps[max_il_idx]),
+                "position": "aboveBar",
+                "color": "#f59e0b",
+                "shape": "circle",
+                "text": "Max IL",
+            }
+        )
 
     series = {
         "timestamps": timestamps.astype(int).tolist(),
@@ -193,6 +238,7 @@ def run_backtest(
         "hodl_values": np.round(hodl_values, 4).tolist(),
         "il_pct": np.round(il_pct_arr, 4).tolist(),
         "prices": closes.tolist(),
+        "markers": markers,
     }
 
     return {"metrics": metrics, "series": series}

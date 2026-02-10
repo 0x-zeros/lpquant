@@ -13,6 +13,15 @@ export function IlChart({ series }: IlChartProps) {
     time: (t / 1000) as UTCTimestamp,
     value: series.il_pct[i],
   }));
+  const markers = series.markers
+    ?.filter((m) => (m.text ?? "").toLowerCase().includes("il"))
+    .map((m) => ({
+      time: (m.time / 1000) as UTCTimestamp,
+      position: m.position,
+      color: m.color ?? "#9ca3af",
+      shape: m.shape,
+      text: m.text,
+    }));
 
   return (
     <ChartWrapper
@@ -20,6 +29,7 @@ export function IlChart({ series }: IlChartProps) {
         {
           data,
           options: { color: "#ef4444", title: "IL %" },
+          markers,
         },
       ]}
     />

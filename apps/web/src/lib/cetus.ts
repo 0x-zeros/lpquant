@@ -5,20 +5,44 @@ import type { PoolConfig } from "./types";
 const CACHE_TTL = 60 * 1000; // 1 minute
 const SUI_RPC = process.env.SUI_RPC_URL || "https://fullnode.mainnet.sui.io:443";
 
+const Q64 = 2n ** 64n;
+const PRICE_PRECISION = 12;
+
+function bigintDivToNumber(numerator: bigint, denominator: bigint, precision = PRICE_PRECISION) {
+  if (denominator === 0n) return 0;
+  const integer = numerator / denominator;
+  let remainder = numerator % denominator;
+  let fraction = "";
+  for (let i = 0; i < precision; i += 1) {
+    remainder *= 10n;
+    const digit = remainder / denominator;
+    fraction += digit.toString();
+    remainder %= denominator;
+  }
+  return Number(`${integer.toString()}.${fraction}`);
+}
+
 /**
- * Convert sqrtPriceX64 to human-readable price.
- * sqrtPrice = sqrtPriceX64 / 2^64
- * price_raw = sqrtPrice^2
- * price = price_raw * 10^(decimalsA - decimalsB)
+ * Convert sqrtPriceX64 to human-readable price using bigint math to avoid
+ * precision loss when sqrtPriceX64 exceeds Number.MAX_SAFE_INTEGER.
+ *
+ * price = (sqrtPriceX64^2 / 2^128) * 10^(decimalsA - decimalsB)
  */
 function sqrtPriceX64ToPrice(
   sqrtPriceX64: bigint,
   decimalsA: number,
   decimalsB: number,
 ): number {
-  const sqrtPrice = Number(sqrtPriceX64) / 2 ** 64;
-  const priceRaw = sqrtPrice * sqrtPrice;
-  return priceRaw * 10 ** (decimalsA - decimalsB);
+  const numeratorBase = sqrtPriceX64 * sqrtPriceX64;
+  let numerator = numeratorBase;
+  let denominator = Q64 * Q64;
+  const decimalDelta = decimalsA - decimalsB;
+  if (decimalDelta >= 0) {
+    numerator *= 10n ** BigInt(decimalDelta);
+  } else {
+    denominator *= 10n ** BigInt(-decimalDelta);
+  }
+  return bigintDivToNumber(numerator, denominator);
 }
 
 interface SuiObjectField {

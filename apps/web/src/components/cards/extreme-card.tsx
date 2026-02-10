@@ -13,13 +13,22 @@ interface ExtremeCardProps {
   onClick: () => void;
 }
 
+function formatDuration(hours: number) {
+  if (!Number.isFinite(hours) || hours <= 0) return "n/a";
+  if (hours < 1) return `${Math.round(hours * 60)}m`;
+  if (hours < 48) return `${hours.toFixed(1)}h`;
+  return `${(hours / 24).toFixed(1)}d`;
+}
+
 export function ExtremeCard({
   candidate,
   label,
   selected,
   onClick,
 }: ExtremeCardProps) {
-  const { pa, pb, metrics, insight, width_pct } = candidate;
+  const { pa, pb, metrics, insight, width_pct, requested_width_pct } = candidate;
+  const requestedWidth = requested_width_pct ?? width_pct;
+  const expectedTouch = formatDuration(metrics.mean_time_to_exit_hours);
 
   return (
     <Card
@@ -38,7 +47,10 @@ export function ExtremeCard({
             ${pa.toFixed(4)} — ${pb.toFixed(4)}
           </div>
           <div className="text-muted-foreground text-xs">
-            Width {width_pct.toFixed(1)}%
+            Requested {requestedWidth.toFixed(1)}% · Realized {width_pct.toFixed(1)}%
+          </div>
+          <div className="text-muted-foreground text-xs">
+            Expected touch interval {expectedTouch}
           </div>
         </div>
       </CardHeader>
@@ -56,6 +68,11 @@ export function ExtremeCard({
             label="Max IL"
             value={`${metrics.max_il_pct.toFixed(1)}%`}
           />
+        </div>
+        <div className="flex flex-wrap gap-1">
+          <Badge variant="destructive">High touch frequency</Badge>
+          <Badge variant="destructive">Ultra narrow range</Badge>
+          <Badge variant="destructive">Active management</Badge>
         </div>
         <p className="text-muted-foreground text-xs leading-relaxed">{insight}</p>
       </CardContent>

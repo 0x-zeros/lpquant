@@ -18,6 +18,13 @@ export function LpVsHodlChart({ series }: LpVsHodlChartProps) {
     time: (t / 1000) as UTCTimestamp,
     value: series.hodl_values[i],
   }));
+  const markers = series.markers?.map((m) => ({
+    time: (m.time / 1000) as UTCTimestamp,
+    position: m.position,
+    color: m.color ?? "#9ca3af",
+    shape: m.shape,
+    text: m.text,
+  }));
 
   return (
     <ChartWrapper
@@ -25,6 +32,7 @@ export function LpVsHodlChart({ series }: LpVsHodlChartProps) {
         {
           data: lpData,
           options: { color: "#22c55e", title: "LP Value" },
+          markers,
         },
         {
           data: hodlData,

@@ -23,14 +23,14 @@ PROFILES: dict[str, dict[str, tuple[float, bool]]] = {
         "lp_vs_hodl_pct": (0.25, False),
         "max_il_pct": (0.20, True),
         "max_drawdown_pct": (0.15, True),
-        "boundary_touches": (0.15, True),
+        "touch_count": (0.15, True),
     },
     "aggressive": {
         "lp_vs_hodl_pct": (0.40, False),
         "capital_efficiency": (0.25, False),
         "max_il_pct": (0.15, True),
         "max_drawdown_pct": (0.10, True),
-        "boundary_touches": (0.10, True),
+        "touch_count": (0.10, True),
     },
 }
 
