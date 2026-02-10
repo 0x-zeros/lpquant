@@ -29,7 +29,9 @@
       "Bash(uv run python:*)",
       "Bash(curl:*)",
       "Bash(python3:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)"
     ]
   }
 }

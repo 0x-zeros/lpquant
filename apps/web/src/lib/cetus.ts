@@ -50,6 +50,15 @@ interface SuiObjectField {
   [key: string]: any;
 }
 
+function extractFields(content: SuiObjectField | null | undefined): SuiObjectField | null {
+  if (!content || typeof content !== "object") return null;
+  if (content.fields) return content.fields as SuiObjectField;
+  if (content.value?.fields) return content.value.fields as SuiObjectField;
+  if (content.fields?.value?.fields) return content.fields.value.fields as SuiObjectField;
+  if (content.fields?.fields) return content.fields.fields as SuiObjectField;
+  return null;
+}
+
 async function getPoolObject(poolId: string): Promise<SuiObjectField> {
   const res = await fetch(SUI_RPC, {
     method: "POST",
@@ -70,11 +79,15 @@ async function getPoolObject(poolId: string): Promise<SuiObjectField> {
   }
 
   const json = await res.json();
-  const content = json?.result?.data?.content;
-  if (!content?.fields) {
-    throw new Error("Failed to get pool object fields");
+  if (json?.error) {
+    throw new Error(`Sui RPC error ${json.error.code}: ${json.error.message}`);
   }
-  return content.fields;
+  const content = json?.result?.data?.content;
+  const fields = extractFields(content);
+  if (!fields) {
+    throw new Error(`Failed to get pool object fields for ${poolId}`);
+  }
+  return fields;
 }
 
 export async function getPoolConfig(pair: string): Promise<PoolConfig> {
@@ -87,7 +100,37 @@ export async function getPoolConfig(pair: string): Promise<PoolConfig> {
     throw new Error(`Unsupported pair: ${pair}`);
   }
 
-  const fields = await getPoolObject(pairConfig.poolId);
+  const poolIds = pairConfig.poolIds ?? [];
+  const errors: string[] = [];
+  let fields: SuiObjectField | null = null;
+  let selectedPoolId: string | null = null;
+
+  for (const poolId of poolIds) {
+    try {
+      const candidate = await getPoolObject(poolId);
+      if (
+        candidate.current_sqrt_price === undefined ||
+        candidate.tick_spacing === undefined ||
+        candidate.fee_rate === undefined
+      ) {
+        errors.push(`Pool ${poolId} missing expected fields`);
+        continue;
+      }
+      fields = candidate;
+      selectedPoolId = poolId;
+      break;
+    } catch (err) {
+      errors.push(
+        err instanceof Error ? err.message : `Unknown error for pool ${poolId}`,
+      );
+    }
+  }
+
+  if (!fields || !selectedPoolId) {
+    throw new Error(
+      `Failed to load pool config. ${errors.length ? errors.join(" | ") : "No poolIds configured"}`,
+    );
+  }
 
   const sqrtPriceX64 = BigInt(fields.current_sqrt_price);
   const currentPrice = sqrtPriceX64ToPrice(
@@ -97,7 +140,7 @@ export async function getPoolConfig(pair: string): Promise<PoolConfig> {
   );
 
   const config: PoolConfig = {
-    poolId: pairConfig.poolId,
+    poolId: selectedPoolId,
     tickSpacing: Number(fields.tick_spacing),
     currentPrice,
     feeRate: Number(fields.fee_rate) / 1_000_000,
