@@ -1,0 +1,50 @@
+{
+  "header": {
+    "title": "LPQuant",
+    "subtitle": "Cetus CLMM Range Recommender"
+  },
+  "input": {
+    "config": "Configuration",
+    "pair": "Trading Pair",
+    "window": "Lookback Window",
+    "profile": "Risk Profile",
+    "strategies": "Strategies",
+    "capital": "Capital (USD)",
+    "analyze": "Analyze",
+    "analyzing": "Analyzing...",
+    "conservative": "Conservative",
+    "balanced": "Balanced",
+    "aggressive": "Aggressive",
+    "quantile": "Quantile",
+    "volband": "Vol Band",
+    "swing": "Swing"
+  },
+  "cards": {
+    "topTitle": "Top Recommendations",
+    "extremeTitle": "Extreme Ranges",
+    "range2": "2% Range",
+    "range5": "5% Range",
+    "emptyState": "Configure parameters and click Analyze to get recommendations."
+  },
+  "metrics": {
+    "inRange": "In Range",
+    "lpVsHodl": "LP vs HODL",
+    "maxIl": "Max IL",
+    "maxDd": "Max DD",
+    "capEff": "Cap Eff",
+    "touches": "Touches"
+  },
+  "detail": {
+    "title": "Detail View",
+    "lpVsHodl": "LP vs HODL",
+    "il": "IL",
+    "price": "Price",
+    "export": "Export JSON",
+    "selectHint": "Select a recommendation to view details.",
+    "noData": "No chart data available for this range."
+  },
+  "locale": {
+    "en": "English",
+    "zh": "中文"
+  }
+}

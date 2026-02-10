@@ -1,0 +1,9 @@
+{
+  "name": "lpquant",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build"
+  }
+}

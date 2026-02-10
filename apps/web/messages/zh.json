@@ -1,0 +1,50 @@
+{
+  "header": {
+    "title": "LPQuant",
+    "subtitle": "Cetus CLMM 范围推荐器"
+  },
+  "input": {
+    "config": "配置",
+    "pair": "交易对",
+    "window": "回溯窗口",
+    "profile": "风险偏好",
+    "strategies": "策略",
+    "capital": "资金 (USD)",
+    "analyze": "分析",
+    "analyzing": "分析中...",
+    "conservative": "保守",
+    "balanced": "均衡",
+    "aggressive": "激进",
+    "quantile": "分位数",
+    "volband": "波动带",
+    "swing": "摆动"
+  },
+  "cards": {
+    "topTitle": "最佳推荐",
+    "extremeTitle": "极端范围",
+    "range2": "2% 范围",
+    "range5": "5% 范围",
+    "emptyState": "配置参数并点击分析以获取推荐。"
+  },
+  "metrics": {
+    "inRange": "在范围内",
+    "lpVsHodl": "LP vs HODL",
+    "maxIl": "最大 IL",
+    "maxDd": "最大回撤",
+    "capEff": "资本效率",
+    "touches": "触碰次数"
+  },
+  "detail": {
+    "title": "详细视图",
+    "lpVsHodl": "LP vs HODL",
+    "il": "无常损失",
+    "price": "价格",
+    "export": "导出 JSON",
+    "selectHint": "选择一个推荐查看详情。",
+    "noData": "此范围没有可用的图表数据。"
+  },
+  "locale": {
+    "en": "English",
+    "zh": "中文"
+  }
+}

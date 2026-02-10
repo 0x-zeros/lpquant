@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/zero/dev/sui/lpquant log --oneline --all)",
+      "WebSearch",
+      "Bash(git -C /Users/zero/dev/sui/lpquant show --stat)",
+      "Bash(git -C /Users/zero/dev/sui/lpquant ls-files:*)",
+      "WebFetch(domain:cetus-1.gitbook.io)",
+      "Bash(git -C /Users/zero/dev/sui/lpquant log --all --format=\"%H %s %an %ad\" --date=short)",
+      "WebFetch(domain:developers.binance.com)",
+      "WebFetch(domain:tradingview.github.io)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:blog.uniswap.org)",
+      "WebFetch(domain:uniswapv3book.com)",
+      "WebFetch(domain:atiselsts.github.io)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git -C /Users/zero/dev/sui/lpquant log --oneline -5)",
+      "Bash(pnpm create:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm dlx shadcn@latest init:*)",
+      "Bash(pnpm dlx shadcn@latest add:*)",
+      "Bash(uv sync:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(uv run python:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build
+.next/
+out/
+dist/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# debug
+npm-debug.log*
+pnpm-debug.log*
+
+# misc
+*.tsbuildinfo
+next-env.d.ts
