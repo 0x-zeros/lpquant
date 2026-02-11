@@ -1,4 +1,5 @@
-import { CetusClmmSDK, TickMath } from "@cetusprotocol/sui-clmm-sdk";
+import { CetusClmmSDK } from "@cetusprotocol/sui-clmm-sdk";
+import { TickMath } from "@cetusprotocol/common-sdk";
 import BN from "bn.js";
 import { cacheGet, cacheSet } from "./cache";
 import { env } from "./env";
@@ -228,12 +229,10 @@ export async function getPoolsSummary(options?: {
 
   const sortable = [...pools];
   sortable.sort((a, b) => {
-    const av =
-      (a as Record<string, unknown>)[sortBy] ??
-      (sortBy === "tvl" ? (a as Record<string, unknown>).tvl : null);
-    const bv =
-      (b as Record<string, unknown>)[sortBy] ??
-      (sortBy === "tvl" ? (b as Record<string, unknown>).tvl : null);
+    const ar = a as unknown as Record<string, unknown>;
+    const br = b as unknown as Record<string, unknown>;
+    const av = ar[sortBy] ?? (sortBy === "tvl" ? ar.tvl : null);
+    const bv = br[sortBy] ?? (sortBy === "tvl" ? br.tvl : null);
     const aNum = toNumber(av) ?? -Infinity;
     const bNum = toNumber(bv) ?? -Infinity;
     return bNum - aNum;
@@ -301,10 +300,8 @@ export async function getPoolConfig(
   const feeRateRaw = toNumber(pool.fee_rate ?? pool.feeRate ?? pool.fee);
   const feeRate = normalizeFeeRate(feeRateRaw);
 
-  const priceFromPool = TickMath.sqrtPriceX64ToPrice(
-    toBN(sqrtPriceRaw),
-    decimalsA,
-    decimalsB,
+  const priceFromPool = Number(
+    TickMath.sqrtPriceX64ToPrice(toBN(sqrtPriceRaw), decimalsA, decimalsB),
   );
 
   let currentPrice = priceFromPool;
