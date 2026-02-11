@@ -16,7 +16,6 @@ export interface PoolConfig {
   coinTypeB: string;
   decimalsA: number;
   decimalsB: number;
-  priceSource: "pool" | "aggregator";
   priceFromPool: number;
 }
 
@@ -27,7 +26,6 @@ export interface RecommendRequest {
   profile: "conservative" | "balanced" | "aggressive";
   capital: number;
   strategies: string[];
-  price_source?: "pool" | "aggregator";
 }
 
 export interface PoolSummary {
@@ -112,4 +110,5 @@ export interface RecommendResponse {
   series: Record<string, ChartSeries>;
   current_price: number;
   pool_fee_rate: number;
+  kline_source?: "birdeye" | "binance";
 }

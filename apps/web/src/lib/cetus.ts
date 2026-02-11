@@ -349,9 +349,8 @@ export async function getPoolSummaryById(poolId: string): Promise<PoolSummary | 
 
 export async function getPoolConfig(
   poolId: string,
-  priceSource: "pool" | "aggregator",
 ): Promise<PoolConfig> {
-  const cacheKey = `pool:${poolId}:${priceSource}`;
+  const cacheKey = `pool:${poolId}`;
   const cached = cacheGet<PoolConfig>(cacheKey);
   if (cached) return cached;
 
@@ -402,7 +401,7 @@ export async function getPoolConfig(
   );
 
   let currentPrice = priceFromPool;
-  if (priceSource === "aggregator" && coinTypeA && coinTypeB) {
+  if (coinTypeA && coinTypeB) {
     const aggPrice = await getAggregatorPrice({
       from: coinTypeA,
       to: coinTypeB,
@@ -423,7 +422,6 @@ export async function getPoolConfig(
     coinTypeB,
     decimalsA,
     decimalsB,
-    priceSource,
     priceFromPool,
   };
 

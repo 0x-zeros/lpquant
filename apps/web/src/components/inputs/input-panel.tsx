@@ -11,7 +11,6 @@ import { StrategyToggles } from "./strategy-toggles";
 import { CapitalInput } from "./capital-input";
 import { PoolLimitInput } from "./pool-limit-input";
 import { PoolSortSelector } from "./pool-sort-selector";
-import { PriceSourceSelector } from "./price-source-selector";
 import { useFormState } from "@/hooks/use-form-state";
 import { useRecommend } from "@/hooks/use-recommend";
 
@@ -58,10 +57,6 @@ export function InputPanel() {
         <CapitalInput
           value={form.capital}
           onChange={(v) => updateField("capital", v)}
-        />
-        <PriceSourceSelector
-          value={form.priceSource}
-          onChange={(v) => updateField("priceSource", v)}
         />
         <Separator />
         <Button

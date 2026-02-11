@@ -11,7 +11,6 @@ export interface FormState {
   capital: number;
   poolLimit: number;
   poolSortBy: string;
-  priceSource: "pool" | "aggregator";
 }
 
 export function useFormState() {
@@ -23,7 +22,6 @@ export function useFormState() {
     capital: 10000,
     poolLimit: DEFAULT_POOL_LIMIT,
     poolSortBy: "volume_24h",
-    priceSource: "aggregator",
   });
 
   const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {

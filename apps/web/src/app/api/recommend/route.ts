@@ -3,7 +3,6 @@ import { getPoolConfig, getPoolSummaryById } from "@/lib/cetus";
 import { fetchKlinesForPool } from "@/lib/kline-source";
 import { callRecommend } from "@/lib/quant-client";
 import { DEFAULT_INTERVAL } from "@/lib/constants";
-import { env } from "@/lib/env";
 
 export async function POST(request: Request) {
   try {
@@ -15,13 +14,7 @@ export async function POST(request: Request) {
       profile = "balanced",
       capital = 10000,
       strategies = ["quantile", "volband", "swing"],
-      price_source: priceSourceRaw,
     } = body;
-
-    const priceSource =
-      priceSourceRaw === "aggregator"
-        ? "aggregator"
-        : (env.PRICE_SOURCE_DEFAULT as "pool" | "aggregator");
 
     if (!poolId) {
       return NextResponse.json({ error: "pool_id is required" }, { status: 400 });
@@ -36,13 +29,13 @@ export async function POST(request: Request) {
     }
 
     // Parallel fetch: klines (Birdeye → Binance fallback) + pool config
-    const [klines, poolConfig] = await Promise.all([
+    const [klineResult, poolConfig] = await Promise.all([
       fetchKlinesForPool(poolSummary, interval, startMs, endMs),
-      getPoolConfig(poolId, priceSource),
+      getPoolConfig(poolId),
     ]);
 
     // Convert klines to array format for Python
-    const klinesArray = klines.map((k) => [
+    const klinesArray = klineResult.klines.map((k) => [
       k.openTime,
       k.open,
       k.high,
@@ -61,7 +54,7 @@ export async function POST(request: Request) {
       strategies,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, kline_source: klineResult.source });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Recommendation failed";

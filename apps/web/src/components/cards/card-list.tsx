@@ -7,6 +7,7 @@ import { ExtremeCard } from "./extreme-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { InfoTip } from "@/components/ui/info-tip";
+import { Badge } from "@/components/ui/badge";
 
 export function CardList() {
   const t = useTranslations("cards");
@@ -45,11 +46,24 @@ export function CardList() {
     );
   }
 
+  const klineSourceLabel =
+    data.kline_source === "birdeye"
+      ? tt("klineBirdeye")
+      : tt("klineBinance");
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-[#00d2ff] flex items-center gap-1.5">
         {t("topTitle")}
         <InfoTip content={tt("topRecommendations")} />
+        {data.kline_source && (
+          <span className="ml-auto flex items-center gap-1">
+            <Badge variant="outline" className="text-xs font-normal">
+              {klineSourceLabel}
+            </Badge>
+            <InfoTip content={tt("klineSourceTip")} />
+          </span>
+        )}
       </h2>
       {data.top3.map((c, i) => (
         <RecommendationCard

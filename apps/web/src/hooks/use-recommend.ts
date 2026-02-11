@@ -26,7 +26,6 @@ export function useRecommend() {
             profile: form.profile,
             capital: form.capital,
             strategies: form.strategies,
-            price_source: form.priceSource,
           }),
         });
 

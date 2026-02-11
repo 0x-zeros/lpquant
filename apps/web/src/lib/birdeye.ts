@@ -2,7 +2,7 @@ import type { Kline } from "./types";
 import { cacheGet, cacheSet } from "./cache";
 import { env } from "./env";
 
-const BIRDEYE_API = "https://public-api.birdeye.so/defi/v3/ohlcv";
+const BIRDEYE_API = "https://public-api.birdeye.so/defi/ohlcv";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /** Map lowercase interval to Birdeye type parameter */

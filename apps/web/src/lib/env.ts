@@ -1,4 +1,9 @@
+import path from "node:path";
+import dotenv from "dotenv";
 import { z } from "zod/v4";
+
+// Load .env from monorepo root (two levels up from apps/web)
+dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
 const envSchema = z.object({
   QUANT_SERVICE_URL: z.string().default("http://localhost:8000"),
@@ -11,9 +16,6 @@ const envSchema = z.object({
     .default("https://api-sui.cetus.zone/router_v3/find_routes"),
   CETUS_KLINE_API_URL: z.string().default(""),
   BIRDEYE_API_KEY: z.string().default(""),
-  PRICE_SOURCE_DEFAULT: z
-    .enum(["pool", "aggregator"])
-    .default("pool"),
 });
 
 export const env = envSchema.parse({
@@ -23,5 +25,4 @@ export const env = envSchema.parse({
   CETUS_AGGREGATOR_URL: process.env.CETUS_AGGREGATOR_URL,
   CETUS_KLINE_API_URL: process.env.CETUS_KLINE_API_URL,
   BIRDEYE_API_KEY: process.env.BIRDEYE_API_KEY,
-  PRICE_SOURCE_DEFAULT: process.env.PRICE_SOURCE_DEFAULT,
 });
