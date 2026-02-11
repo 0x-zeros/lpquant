@@ -3,6 +3,7 @@ import { getPoolConfig, getPoolSummaryById } from "@/lib/cetus";
 import { fetchKlinesForPool } from "@/lib/kline-source";
 import { callRecommend } from "@/lib/quant-client";
 import { DEFAULT_INTERVAL } from "@/lib/constants";
+import { resolveSymbol } from "@/lib/tokens";
 
 export async function POST(request: Request) {
   try {
@@ -54,7 +55,23 @@ export async function POST(request: Request) {
       strategies,
     });
 
-    return NextResponse.json({ ...result, kline_source: klineResult.source });
+    const coinSymbolA = poolSummary.coin_type_a
+      ? resolveSymbol(poolSummary.coin_type_a)
+      : "";
+    const coinSymbolB = poolSummary.coin_type_b
+      ? resolveSymbol(poolSummary.coin_type_b)
+      : "";
+
+    return NextResponse.json({
+      ...result,
+      kline_source: klineResult.source,
+      price_asset_symbol: klineResult.pricing.pricingSymbol,
+      price_quote_symbol: "USD",
+      price_asset_side: klineResult.pricing.pricingSide,
+      pool_symbol: poolSummary.symbol,
+      coin_symbol_a: coinSymbolA,
+      coin_symbol_b: coinSymbolB,
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Recommendation failed";

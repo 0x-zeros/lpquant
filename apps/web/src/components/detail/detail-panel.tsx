@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRecommendContext } from "@/context/recommend-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Toggle } from "@/components/ui/toggle";
 import {
   Tooltip,
   TooltipContent,
@@ -19,6 +21,7 @@ export function DetailPanel() {
   const t = useTranslations("detail");
   const tt = useTranslations("tooltips");
   const { data, selectedKey } = useRecommendContext();
+  const [priceMode, setPriceMode] = useState<"quote" | "base">("quote");
 
   if (!data || !selectedKey) {
     return (
@@ -40,6 +43,21 @@ export function DetailPanel() {
       </Card>
     );
   }
+
+  const fallbackAssetSymbol =
+    data.price_asset_side === "B"
+      ? data.coin_symbol_b
+      : data.price_asset_side === "A"
+        ? data.coin_symbol_a
+        : undefined;
+  const priceAssetSymbol = (data.price_asset_symbol ?? fallbackAssetSymbol ?? "").trim();
+  const priceQuoteSymbol = (data.price_quote_symbol ?? "USD").trim();
+  const showPriceToggle = priceAssetSymbol.length > 0;
+  const priceLabel = showPriceToggle
+    ? priceMode === "quote"
+      ? `${priceQuoteSymbol} / ${priceAssetSymbol}`
+      : `${priceAssetSymbol} / ${priceQuoteSymbol}`
+    : t("price");
 
   return (
     <Card>
@@ -96,8 +114,45 @@ export function DetailPanel() {
             <IlChart series={series} />
           </TabsContent>
           <TabsContent value="price" className="mt-3">
-            <p className="text-muted-foreground text-xs mb-2">{tt("chartPrice")}</p>
-            <PriceChart series={series} />
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-muted-foreground text-xs">
+                {tt("chartPrice")}
+              </p>
+              {showPriceToggle && (
+                <div className="flex items-center gap-1 rounded-full border border-border/60 bg-muted/20 p-1">
+                  <Toggle
+                    size="sm"
+                    variant="outline"
+                    pressed={priceMode === "quote"}
+                    onPressedChange={(pressed) => {
+                      if (pressed) setPriceMode("quote");
+                    }}
+                    className="h-7 px-2 text-xs"
+                  >
+                    {priceQuoteSymbol}
+                  </Toggle>
+                  <Toggle
+                    size="sm"
+                    variant="outline"
+                    pressed={priceMode === "base"}
+                    onPressedChange={(pressed) => {
+                      if (pressed) setPriceMode("base");
+                    }}
+                    className="h-7 px-2 text-xs"
+                  >
+                    {priceAssetSymbol}
+                  </Toggle>
+                </div>
+              )}
+            </div>
+            <div className="text-xs font-medium text-muted-foreground mb-2">
+              {priceLabel}
+            </div>
+            <PriceChart
+              series={series}
+              mode={priceMode}
+              label={priceLabel}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

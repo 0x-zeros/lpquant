@@ -16,13 +16,13 @@ export async function GET(request: Request) {
   try {
     // If coin types are provided, use unified kline source (Birdeye → Binance fallback)
     if (coinTypeA && coinTypeB) {
-      const { klines, source } = await fetchKlinesForPool(
+      const { klines, source, pricing } = await fetchKlinesForPool(
         { coin_type_a: coinTypeA, coin_type_b: coinTypeB },
         interval,
         startMs,
         endMs,
       );
-      return NextResponse.json({ klines, source });
+      return NextResponse.json({ klines, source, pricing });
     }
 
     // Otherwise, use direct Binance symbol lookup

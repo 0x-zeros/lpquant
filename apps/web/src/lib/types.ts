@@ -111,4 +111,10 @@ export interface RecommendResponse {
   current_price: number;
   pool_fee_rate: number;
   kline_source?: "birdeye" | "binance";
+  price_asset_symbol?: string;
+  price_quote_symbol?: string;
+  price_asset_side?: "A" | "B";
+  pool_symbol?: string;
+  coin_symbol_a?: string;
+  coin_symbol_b?: string;
 }

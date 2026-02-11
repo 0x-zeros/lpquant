@@ -1,7 +1,7 @@
 import type { Kline } from "./types";
 import { fetchBirdeyeKlines } from "./birdeye";
 import { fetchKlines } from "./binance";
-import { deriveBinanceSymbol, toBirdeyeAddress } from "./tokens";
+import { deriveBinanceSymbol, selectPricingAsset, toBirdeyeAddress } from "./tokens";
 import { env } from "./env";
 
 export type KlineSource = "birdeye" | "binance";
@@ -9,6 +9,11 @@ export type KlineSource = "birdeye" | "binance";
 export interface KlineResult {
   klines: Kline[];
   source: KlineSource;
+  pricing: {
+    pricingCoinType: string;
+    pricingSymbol: string;
+    pricingSide: "A" | "B";
+  };
 }
 
 /**
@@ -25,13 +30,14 @@ export async function fetchKlinesForPool(
   endMs: number,
 ): Promise<KlineResult> {
   const errors: string[] = [];
+  const pricing = selectPricingAsset(pool.coin_type_a, pool.coin_type_b);
 
   // 1. Try Birdeye
   if (env.BIRDEYE_API_KEY?.trim()) {
     try {
-      const address = toBirdeyeAddress(pool.coin_type_a);
+      const address = toBirdeyeAddress(pricing.pricingCoinType);
       const klines = await fetchBirdeyeKlines(address, interval, startMs, endMs);
-      return { klines, source: "birdeye" };
+      return { klines, source: "birdeye", pricing };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Birdeye: ${msg}`);
@@ -44,7 +50,7 @@ export async function fetchKlinesForPool(
   if (binanceSymbol) {
     try {
       const klines = await fetchKlines(binanceSymbol, interval, startMs, endMs);
-      return { klines, source: "binance" };
+      return { klines, source: "binance", pricing };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Binance(${binanceSymbol}): ${msg}`);
