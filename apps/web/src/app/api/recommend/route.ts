@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { fetchKlines } from "@/lib/binance";
+import { fetchCetusKlines } from "@/lib/cetus-kline";
 import { getPoolConfig, getPoolSummaryById } from "@/lib/cetus";
 import { callRecommend } from "@/lib/quant-client";
 import { DEFAULT_INTERVAL } from "@/lib/constants";
 import { env } from "@/lib/env";
+import type { Kline } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -34,7 +36,19 @@ export async function POST(request: Request) {
     if (!poolSummary) {
       return NextResponse.json({ error: "Pool not found" }, { status: 400 });
     }
-    if (!poolSummary.binance_symbol) {
+    const hasCetusKlines = Boolean(env.CETUS_KLINE_API_URL?.trim());
+
+    let klinesPromise: Promise<Kline[]>;
+    if (poolSummary.binance_symbol) {
+      klinesPromise = fetchKlines(poolSummary.binance_symbol, interval, startMs, endMs).catch(
+        (err) => {
+          if (!hasCetusKlines) throw err;
+          return fetchCetusKlines(poolId, interval, startMs, endMs);
+        },
+      );
+    } else if (hasCetusKlines) {
+      klinesPromise = fetchCetusKlines(poolId, interval, startMs, endMs);
+    } else {
       return NextResponse.json(
         { error: "No Binance symbol mapping for this pool" },
         { status: 400 },
@@ -43,7 +57,7 @@ export async function POST(request: Request) {
 
     // Parallel fetch: klines + pool config
     const [klines, poolConfig] = await Promise.all([
-      fetchKlines(poolSummary.binance_symbol, interval, startMs, endMs),
+      klinesPromise,
       getPoolConfig(poolId, priceSource),
     ]);
 

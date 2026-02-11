@@ -9,6 +9,7 @@ const envSchema = z.object({
   CETUS_AGGREGATOR_URL: z
     .string()
     .default("https://api-sui.cetus.zone/router_v3/find_routes"),
+  CETUS_KLINE_API_URL: z.string().default(""),
   PRICE_SOURCE_DEFAULT: z
     .enum(["pool", "aggregator"])
     .default("pool"),
@@ -19,5 +20,6 @@ export const env = envSchema.parse({
   SUI_RPC_URL: process.env.SUI_RPC_URL,
   CETUS_POOLS_API_URL: process.env.CETUS_POOLS_API_URL,
   CETUS_AGGREGATOR_URL: process.env.CETUS_AGGREGATOR_URL,
+  CETUS_KLINE_API_URL: process.env.CETUS_KLINE_API_URL,
   PRICE_SOURCE_DEFAULT: process.env.PRICE_SOURCE_DEFAULT,
 });
