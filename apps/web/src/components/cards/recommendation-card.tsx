@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MetricBadge } from "./metric-badge";
+import { PriceRangeMeta } from "./price-range-meta";
 import { InfoTip } from "@/components/ui/info-tip";
 import { buildInsight, buildDetailedInsight } from "@/lib/build-insight";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ interface RecommendationCardProps {
   candidate: CandidateResult;
   rank: number;
   selected: boolean;
+  currentPrice: number;
   onClick: () => void;
 }
 
@@ -44,6 +46,7 @@ export function RecommendationCard({
   candidate,
   rank,
   selected,
+  currentPrice,
   onClick,
 }: RecommendationCardProps) {
   const tc = useTranslations("cards");
@@ -89,6 +92,7 @@ export function RecommendationCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
+        <PriceRangeMeta currentPrice={currentPrice} minPrice={pa} maxPrice={pb} />
         <div className="grid grid-cols-3 gap-2">
           <MetricBadge
             label={tm("inRange")}
