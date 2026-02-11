@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { getPoolConfig } from "@/lib/cetus";
+import { env } from "@/lib/env";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const pair = searchParams.get("pair") || "SUI-USDC";
+  const poolId = searchParams.get("pool_id");
+  const priceSourceRaw = searchParams.get("price_source");
+  const priceSource =
+    priceSourceRaw === "aggregator"
+      ? "aggregator"
+      : (env.PRICE_SOURCE_DEFAULT as "pool" | "aggregator");
 
   try {
-    const config = await getPoolConfig(pair);
+    if (!poolId) {
+      return NextResponse.json({ error: "pool_id is required" }, { status: 400 });
+    }
+    const config = await getPoolConfig(poolId, priceSource);
     return NextResponse.json(config);
   } catch (error) {
     const message =

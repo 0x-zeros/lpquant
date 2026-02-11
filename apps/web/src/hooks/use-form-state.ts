@@ -1,22 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { DEFAULT_POOL_LIMIT } from "@/lib/constants";
 
 export interface FormState {
-  pair: string;
+  poolId: string;
   days: number;
   profile: "conservative" | "balanced" | "aggressive";
   strategies: string[];
   capital: number;
+  poolLimit: number;
+  poolSortBy: string;
+  priceSource: "pool" | "aggregator";
 }
 
 export function useFormState() {
   const [form, setForm] = useState<FormState>({
-    pair: "SUI-USDC",
+    poolId: "",
     days: 30,
     profile: "balanced",
     strategies: ["quantile", "volband", "swing"],
     capital: 10000,
+    poolLimit: DEFAULT_POOL_LIMIT,
+    poolSortBy: "volume_24h",
+    priceSource: "aggregator",
   });
 
   const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {

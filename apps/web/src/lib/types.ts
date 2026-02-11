@@ -14,15 +14,41 @@ export interface PoolConfig {
   feeRate: number;
   coinTypeA: string;
   coinTypeB: string;
+  decimalsA: number;
+  decimalsB: number;
+  priceSource: "pool" | "aggregator";
+  priceFromPool: number;
 }
 
 export interface RecommendRequest {
-  pair: string;
+  pool_id: string;
   days: number;
   interval: string;
   profile: "conservative" | "balanced" | "aggressive";
   capital: number;
   strategies: string[];
+  price_source?: "pool" | "aggregator";
+}
+
+export interface PoolSummary {
+  pool_id: string;
+  symbol: string;
+  fee_rate: number;
+  volume_24h?: number | null;
+  fees_24h?: number | null;
+  apr?: number | null;
+  tvl?: number | null;
+  coin_type_a: string;
+  coin_type_b: string;
+  decimals_a: number;
+  decimals_b: number;
+  binance_symbol?: string | null;
+}
+
+export interface PoolsResponse {
+  pools: PoolSummary[];
+  updated_at: number;
+  sort_by: string;
 }
 
 export interface BacktestMetrics {

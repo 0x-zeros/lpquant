@@ -20,12 +20,13 @@ export function useRecommend() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            pair: form.pair,
+            pool_id: form.poolId,
             days: form.days,
             interval: "1h",
             profile: form.profile,
             capital: form.capital,
             strategies: form.strategies,
+            price_source: form.priceSource,
           }),
         });
 
