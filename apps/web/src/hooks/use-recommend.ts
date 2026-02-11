@@ -5,7 +5,7 @@ import { useRecommendContext } from "@/context/recommend-context";
 import type { FormState } from "./use-form-state";
 
 export function useRecommend() {
-  const { setData, setLoading, setError, setSelectedKey, loading } =
+  const { setData, setLoading, setError, setSelectedKey, setRequest, loading } =
     useRecommendContext();
 
   const analyze = useCallback(
@@ -14,6 +14,14 @@ export function useRecommend() {
       setError(null);
       setData(null);
       setSelectedKey(null);
+      setRequest({
+        pool_id: form.poolId,
+        days: form.days,
+        interval: "1h",
+        profile: form.profile,
+        capital: form.capital,
+        strategies: form.strategies,
+      });
 
       try {
         const res = await fetch("/api/recommend", {
@@ -43,7 +51,7 @@ export function useRecommend() {
         setLoading(false);
       }
     },
-    [setData, setLoading, setError, setSelectedKey],
+    [setData, setLoading, setError, setSelectedKey, setRequest],
   );
 
   return { analyze, loading };
