@@ -24,7 +24,16 @@
     "extremeTitle": "Extreme Ranges",
     "range2": "2% Range",
     "range5": "5% Range",
-    "emptyState": "Configure parameters and click Analyze to get recommendations."
+    "emptyState": "Configure parameters and click Analyze to get recommendations.",
+    "error": "Error",
+    "score": "Score",
+    "ticks": "Ticks",
+    "requested": "Requested",
+    "realized": "Realized",
+    "expectedTouch": "Expected touch interval",
+    "highTouch": "High touch frequency",
+    "ultraNarrow": "Ultra narrow range",
+    "activeMgmt": "Active management"
   },
   "metrics": {
     "inRange": "In Range",
@@ -32,7 +41,8 @@
     "maxIl": "Max IL",
     "maxDd": "Max DD",
     "capEff": "Cap Eff",
-    "touches": "Touches"
+    "touches": "Touches",
+    "meanExit": "Mean Exit"
   },
   "detail": {
     "title": "Detail View",
@@ -42,9 +52,5 @@
     "export": "Export JSON",
     "selectHint": "Select a recommendation to view details.",
     "noData": "No chart data available for this range."
-  },
-  "locale": {
-    "en": "English",
-    "zh": "中文"
   }
 }

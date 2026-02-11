@@ -17,8 +17,8 @@ export function MetricBadge({ label, value, variant = "neutral" }: MetricBadgePr
         variant="outline"
         className={cn(
           "text-xs font-mono",
-          variant === "good" && "border-green-500 text-green-600",
-          variant === "bad" && "border-red-500 text-red-600",
+          variant === "good" && "border-emerald-500/50 text-emerald-400",
+          variant === "bad" && "border-red-500/50 text-red-400",
         )}
       >
         {value}

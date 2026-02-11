@@ -24,15 +24,25 @@
     "extremeTitle": "极端范围",
     "range2": "2% 范围",
     "range5": "5% 范围",
-    "emptyState": "配置参数并点击分析以获取推荐。"
+    "emptyState": "配置参数并点击分析以获取推荐。",
+    "error": "错误",
+    "score": "评分",
+    "ticks": "Ticks",
+    "requested": "请求宽度",
+    "realized": "实际宽度",
+    "expectedTouch": "预计触碰间隔",
+    "highTouch": "高频触碰",
+    "ultraNarrow": "超窄范围",
+    "activeMgmt": "需主动管理"
   },
   "metrics": {
-    "inRange": "在范围内",
+    "inRange": "范围内",
     "lpVsHodl": "LP vs HODL",
     "maxIl": "最大 IL",
     "maxDd": "最大回撤",
     "capEff": "资本效率",
-    "touches": "触碰次数"
+    "touches": "触碰次数",
+    "meanExit": "平均退出"
   },
   "detail": {
     "title": "详细视图",
@@ -42,9 +52,5 @@
     "export": "导出 JSON",
     "selectHint": "选择一个推荐查看详情。",
     "noData": "此范围没有可用的图表数据。"
-  },
-  "locale": {
-    "en": "English",
-    "zh": "中文"
   }
 }

@@ -1,12 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const PROFILES = [
-  { value: "conservative", label: "Conservative" },
-  { value: "balanced", label: "Balanced" },
-  { value: "aggressive", label: "Aggressive" },
-] as const;
+const PROFILES = ["conservative", "balanced", "aggressive"] as const;
 
 interface ProfileSelectorProps {
   value: string;
@@ -14,9 +11,11 @@ interface ProfileSelectorProps {
 }
 
 export function ProfileSelector({ value, onChange }: ProfileSelectorProps) {
+  const t = useTranslations("input");
+
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">Risk Profile</label>
+      <label className="text-sm font-medium">{t("profile")}</label>
       <Tabs
         value={value}
         onValueChange={(v) =>
@@ -25,8 +24,8 @@ export function ProfileSelector({ value, onChange }: ProfileSelectorProps) {
       >
         <TabsList className="w-full">
           {PROFILES.map((p) => (
-            <TabsTrigger key={p.value} value={p.value} className="flex-1">
-              {p.label}
+            <TabsTrigger key={p} value={p} className="flex-1">
+              {t(p)}
             </TabsTrigger>
           ))}
         </TabsList>

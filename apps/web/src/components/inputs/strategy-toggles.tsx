@@ -1,12 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Toggle } from "@/components/ui/toggle";
 
-const STRATEGIES = [
-  { value: "quantile", label: "Quantile" },
-  { value: "volband", label: "Vol Band" },
-  { value: "swing", label: "Swing" },
-];
+const STRATEGIES = ["quantile", "volband", "swing"] as const;
 
 interface StrategyTogglesProps {
   selected: string[];
@@ -14,19 +11,21 @@ interface StrategyTogglesProps {
 }
 
 export function StrategyToggles({ selected, onToggle }: StrategyTogglesProps) {
+  const t = useTranslations("input");
+
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">Strategies</label>
+      <label className="text-sm font-medium">{t("strategies")}</label>
       <div className="flex gap-2">
         {STRATEGIES.map((s) => (
           <Toggle
-            key={s.value}
-            pressed={selected.includes(s.value)}
-            onPressedChange={() => onToggle(s.value)}
+            key={s}
+            pressed={selected.includes(s)}
+            onPressedChange={() => onToggle(s)}
             variant="outline"
             className="flex-1"
           >
-            {s.label}
+            {t(s)}
           </Toggle>
         ))}
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRecommendContext } from "@/context/recommend-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +10,14 @@ import { PriceChart } from "./price-chart";
 import { ExportButton } from "./export-button";
 
 export function DetailPanel() {
+  const t = useTranslations("detail");
   const { data, selectedKey } = useRecommendContext();
 
   if (!data || !selectedKey) {
     return (
       <Card className="flex h-full items-center justify-center">
         <p className="text-muted-foreground text-sm">
-          Select a recommendation to view details.
+          {t("selectHint")}
         </p>
       </Card>
     );
@@ -26,7 +28,7 @@ export function DetailPanel() {
     return (
       <Card className="flex h-full items-center justify-center">
         <p className="text-muted-foreground text-sm">
-          No chart data available for this range.
+          {t("noData")}
         </p>
       </Card>
     );
@@ -35,20 +37,20 @@ export function DetailPanel() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg">Detail View</CardTitle>
+        <CardTitle className="text-lg">{t("title")}</CardTitle>
         <ExportButton />
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="value">
           <TabsList className="w-full">
             <TabsTrigger value="value" className="flex-1">
-              LP vs HODL
+              {t("lpVsHodl")}
             </TabsTrigger>
             <TabsTrigger value="il" className="flex-1">
-              IL
+              {t("il")}
             </TabsTrigger>
             <TabsTrigger value="price" className="flex-1">
-              Price
+              {t("price")}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="value" className="mt-3">

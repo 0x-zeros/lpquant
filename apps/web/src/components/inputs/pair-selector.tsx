@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Select,
   SelectContent,
@@ -15,9 +16,11 @@ interface PairSelectorProps {
 }
 
 export function PairSelector({ value, onChange }: PairSelectorProps) {
+  const t = useTranslations("input");
+
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">Trading Pair</label>
+      <label className="text-sm font-medium">{t("pair")}</label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full">
           <SelectValue />

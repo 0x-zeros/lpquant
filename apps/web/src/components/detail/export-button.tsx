@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useRecommendContext } from "@/context/recommend-context";
 
 export function ExportButton() {
+  const t = useTranslations("detail");
   const { data } = useRecommendContext();
 
   const handleExport = () => {
@@ -21,7 +23,7 @@ export function ExportButton() {
 
   return (
     <Button variant="outline" size="sm" onClick={handleExport} disabled={!data}>
-      Export JSON
+      {t("export")}
     </Button>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MetricBadge } from "./metric-badge";
@@ -37,19 +38,21 @@ export function RecommendationCard({
   selected,
   onClick,
 }: RecommendationCardProps) {
+  const tc = useTranslations("cards");
+  const tm = useTranslations("metrics");
   const { pa, pb, tick_lower, tick_upper, metrics, score, insight, strategy } =
     candidate;
 
   return (
     <Card
       className={cn(
-        "cursor-pointer transition-shadow hover:shadow-md",
-        selected && "ring-2 ring-primary",
+        "cursor-pointer transition-all hover:shadow-lg hover:shadow-[#00d2ff]/5",
+        selected && "ring-2 ring-[#00d2ff] shadow-lg shadow-[#00d2ff]/10",
       )}
       onClick={onClick}
     >
       <CardHeader className="flex flex-row items-center gap-2 pb-2">
-        <Badge className="h-6 w-6 items-center justify-center rounded-full p-0">
+        <Badge className="h-6 w-6 items-center justify-center rounded-full bg-[#00d2ff] p-0 text-[#0d0e21]">
           {rank}
         </Badge>
         <div className="flex-1">
@@ -57,7 +60,7 @@ export function RecommendationCard({
             ${pa.toFixed(4)} — ${pb.toFixed(4)}
           </div>
           <div className="text-muted-foreground text-xs">
-            Ticks {tick_lower} → {tick_upper} | {strategy} | Score{" "}
+            {tc("ticks")} {tick_lower} → {tick_upper} | {strategy} | {tc("score")}{" "}
             <span className="font-semibold">{score.toFixed(1)}</span>
           </div>
         </div>
@@ -65,31 +68,31 @@ export function RecommendationCard({
       <CardContent className="space-y-3 pt-0">
         <div className="grid grid-cols-3 gap-2">
           <MetricBadge
-            label="In Range"
+            label={tm("inRange")}
             value={`${metrics.in_range_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.in_range_pct, 80, 50)}
           />
           <MetricBadge
-            label="Touches"
+            label={tm("touches")}
             value={String(metrics.touch_count)}
             variant={metricVariant(metrics.touch_count, 5, 15, true)}
           />
           <MetricBadge
-            label="Mean Exit"
+            label={tm("meanExit")}
             value={formatDuration(metrics.mean_time_to_exit_hours)}
           />
           <MetricBadge
-            label="LP vs HODL"
+            label={tm("lpVsHodl")}
             value={`${metrics.lp_vs_hodl_pct >= 0 ? "+" : ""}${metrics.lp_vs_hodl_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.lp_vs_hodl_pct, 0, -5)}
           />
           <MetricBadge
-            label="Max IL"
+            label={tm("maxIl")}
             value={`${metrics.max_il_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.max_il_pct, 5, 15, true)}
           />
           <MetricBadge
-            label="Max DD"
+            label={tm("maxDd")}
             value={`${metrics.max_drawdown_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.max_drawdown_pct, 10, 25, true)}
           />

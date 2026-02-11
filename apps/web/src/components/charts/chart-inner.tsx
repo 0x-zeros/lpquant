@@ -33,12 +33,12 @@ export function ChartInner({ seriesList, height = 250 }: ChartInnerProps) {
       height,
       layout: {
         background: { color: "transparent" },
-        textColor: "#999",
+        textColor: "#8892b0",
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "rgba(150,150,150,0.1)" },
-        horzLines: { color: "rgba(150,150,150,0.1)" },
+        vertLines: { color: "rgba(255,255,255,0.04)" },
+        horzLines: { color: "rgba(255,255,255,0.04)" },
       },
       rightPriceScale: { borderVisible: false },
       timeScale: {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const WINDOWS = [
@@ -16,9 +17,11 @@ interface WindowSelectorProps {
 }
 
 export function WindowSelector({ value, onChange }: WindowSelectorProps) {
+  const t = useTranslations("input");
+
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">Lookback Window</label>
+      <label className="text-sm font-medium">{t("window")}</label>
       <Tabs value={String(value)} onValueChange={(v) => onChange(Number(v))}>
         <TabsList className="w-full">
           {WINDOWS.map((w) => (
