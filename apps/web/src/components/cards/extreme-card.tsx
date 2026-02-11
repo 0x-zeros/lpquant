@@ -13,12 +13,14 @@ import { MetricBadge } from "./metric-badge";
 import { InfoTip } from "@/components/ui/info-tip";
 import { buildInsight, buildDetailedInsight } from "@/lib/build-insight";
 import { cn } from "@/lib/utils";
+import { PriceRangeMeta } from "./price-range-meta";
 import type { CandidateResult } from "@/lib/types";
 
 interface ExtremeCardProps {
   candidate: CandidateResult;
   label: string;
   selected: boolean;
+  currentPrice: number;
   onClick: () => void;
 }
 
@@ -50,6 +52,7 @@ export function ExtremeCard({
   candidate,
   label,
   selected,
+  currentPrice,
   onClick,
 }: ExtremeCardProps) {
   const tc = useTranslations("cards");
@@ -91,6 +94,7 @@ export function ExtremeCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
+        <PriceRangeMeta currentPrice={currentPrice} minPrice={pa} maxPrice={pb} />
         <div className="grid grid-cols-3 gap-2">
           <MetricBadge
             label={tm("inRange")}

@@ -71,6 +71,7 @@ export function CardList() {
           candidate={c}
           rank={i + 1}
           selected={selectedKey === `top${i + 1}`}
+          currentPrice={data.current_price}
           onClick={() => setSelectedKey(`top${i + 1}`)}
         />
       ))}
@@ -85,12 +86,14 @@ export function CardList() {
         candidate={data.extreme_2pct}
         label={t("range2")}
         selected={selectedKey === "extreme_2pct"}
+        currentPrice={data.current_price}
         onClick={() => setSelectedKey("extreme_2pct")}
       />
       <ExtremeCard
         candidate={data.extreme_5pct}
         label={t("range5")}
         selected={selectedKey === "extreme_5pct"}
+        currentPrice={data.current_price}
         onClick={() => setSelectedKey("extreme_5pct")}
       />
     </div>

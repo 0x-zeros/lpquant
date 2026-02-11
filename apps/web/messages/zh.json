@@ -39,7 +39,10 @@
     "expectedTouch": "预计触碰间隔",
     "highTouch": "高频触碰",
     "ultraNarrow": "超窄范围",
-    "activeMgmt": "需主动管理"
+    "activeMgmt": "需主动管理",
+    "currentPrice": "当前价格",
+    "minPrice": "最低价",
+    "maxPrice": "最高价"
   },
   "metrics": {
     "inRange": "范围内",

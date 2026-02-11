@@ -39,7 +39,10 @@
     "expectedTouch": "Expected touch interval",
     "highTouch": "High touch frequency",
     "ultraNarrow": "Ultra narrow range",
-    "activeMgmt": "Active management"
+    "activeMgmt": "Active management",
+    "currentPrice": "Current Price",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price"
   },
   "metrics": {
     "inRange": "In Range",
