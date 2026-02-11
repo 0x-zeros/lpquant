@@ -13,9 +13,7 @@ export async function GET(request: Request) {
   );
 
   try {
-    console.log("[api/pools] GET request: limit =", limit, "sortBy =", sortBy);
     const pools = await getPoolsSummary({ limit, sortBy });
-    console.log("[api/pools] returning", pools.length, "pools");
     return NextResponse.json({
       pools,
       updated_at: Date.now(),

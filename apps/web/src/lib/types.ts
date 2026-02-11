@@ -43,6 +43,8 @@ export interface PoolSummary {
   decimals_a: number;
   decimals_b: number;
   binance_symbol?: string | null;
+  logo_url_a?: string | null;
+  logo_url_b?: string | null;
 }
 
 export interface PoolsResponse {
