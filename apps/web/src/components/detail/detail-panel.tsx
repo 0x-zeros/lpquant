@@ -16,6 +16,7 @@ import { LpVsHodlChart } from "./lp-vs-hodl-chart";
 import { IlChart } from "./il-chart";
 import { PriceChart } from "./price-chart";
 import { ExportButton } from "./export-button";
+import { LlmPanel } from "./llm-panel";
 
 export function DetailPanel() {
   const t = useTranslations("detail");
@@ -104,6 +105,9 @@ export function DetailPanel() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            <TabsTrigger value="llm" className="flex-1">
+              {t("llm")}
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="value" className="mt-3">
             <p className="text-muted-foreground text-xs mb-2">{tt("chartLpVsHodl")}</p>
@@ -153,6 +157,9 @@ export function DetailPanel() {
               mode={priceMode}
               label={priceLabel}
             />
+          </TabsContent>
+          <TabsContent value="llm" className="mt-3">
+            <LlmPanel />
           </TabsContent>
         </Tabs>
       </CardContent>

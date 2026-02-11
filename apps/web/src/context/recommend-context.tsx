@@ -6,11 +6,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { RecommendResponse } from "@/lib/types";
+import type { RecommendRequest, RecommendResponse } from "@/lib/types";
 
 interface RecommendContextValue {
   data: RecommendResponse | null;
   setData: (d: RecommendResponse | null) => void;
+  request: RecommendRequest | null;
+  setRequest: (r: RecommendRequest | null) => void;
   selectedKey: string | null;
   setSelectedKey: (k: string | null) => void;
   loading: boolean;
@@ -23,6 +25,7 @@ const RecommendContext = createContext<RecommendContextValue | null>(null);
 
 export function RecommendProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<RecommendResponse | null>(null);
+  const [request, setRequest] = useState<RecommendRequest | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +35,8 @@ export function RecommendProvider({ children }: { children: ReactNode }) {
       value={{
         data,
         setData,
+        request,
+        setRequest,
         selectedKey,
         setSelectedKey,
         loading,
