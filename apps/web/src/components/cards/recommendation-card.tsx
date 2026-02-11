@@ -49,10 +49,9 @@ export function RecommendationCard({
   const tc = useTranslations("cards");
   const tm = useTranslations("metrics");
   const tt = useTranslations("tooltips");
-  const { pa, pb, tick_lower, tick_upper, metrics, score, insight, strategy, insight_data } =
-    candidate;
+  const { pa, pb, tick_lower, tick_upper, metrics, score, strategy } = candidate;
 
-  const localInsight = buildInsight(insight_data, insight, tt);
+  const localInsight = buildInsight(candidate, tt);
 
   return (
     <Card

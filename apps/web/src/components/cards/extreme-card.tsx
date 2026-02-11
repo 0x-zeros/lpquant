@@ -55,11 +55,11 @@ export function ExtremeCard({
   const tc = useTranslations("cards");
   const tm = useTranslations("metrics");
   const tt = useTranslations("tooltips");
-  const { pa, pb, metrics, insight, width_pct, requested_width_pct, insight_data } = candidate;
+  const { pa, pb, metrics, width_pct, requested_width_pct } = candidate;
   const requestedWidth = requested_width_pct ?? width_pct;
   const expectedTouch = formatDuration(metrics.mean_time_to_exit_hours);
 
-  const localInsight = buildInsight(insight_data, insight, tt);
+  const localInsight = buildInsight(candidate, tt);
 
   return (
     <Card
