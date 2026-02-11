@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { MetricBadge } from "./metric-badge";
 import { InfoTip } from "@/components/ui/info-tip";
-import { buildInsight } from "@/lib/build-insight";
+import { buildInsight, buildDetailedInsight } from "@/lib/build-insight";
 import { cn } from "@/lib/utils";
 import type { CandidateResult } from "@/lib/types";
 
@@ -52,6 +52,7 @@ export function RecommendationCard({
   const { pa, pb, tick_lower, tick_upper, metrics, score, strategy } = candidate;
 
   const localInsight = buildInsight(candidate, tt);
+  const detailedInsight = buildDetailedInsight(candidate, tt);
 
   return (
     <Card
@@ -125,7 +126,18 @@ export function RecommendationCard({
             tooltip={tt("metricMaxDd")}
           />
         </div>
-        <p className="text-muted-foreground text-xs leading-relaxed">{localInsight}</p>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-muted-foreground text-xs leading-relaxed cursor-help border-b border-dashed border-muted-foreground/30">
+                {localInsight}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-sm whitespace-pre-line text-left">
+              {detailedInsight}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );

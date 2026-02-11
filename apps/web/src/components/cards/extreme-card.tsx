@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { MetricBadge } from "./metric-badge";
 import { InfoTip } from "@/components/ui/info-tip";
-import { buildInsight } from "@/lib/build-insight";
+import { buildInsight, buildDetailedInsight } from "@/lib/build-insight";
 import { cn } from "@/lib/utils";
 import type { CandidateResult } from "@/lib/types";
 
@@ -60,6 +60,7 @@ export function ExtremeCard({
   const expectedTouch = formatDuration(metrics.mean_time_to_exit_hours);
 
   const localInsight = buildInsight(candidate, tt);
+  const detailedInsight = buildDetailedInsight(candidate, tt);
 
   return (
     <Card
@@ -112,7 +113,18 @@ export function ExtremeCard({
           <WarningBadge label={tc("ultraNarrow")} tooltip={tt("ultraNarrow")} />
           <WarningBadge label={tc("activeMgmt")} tooltip={tt("activeMgmt")} />
         </div>
-        <p className="text-muted-foreground text-xs leading-relaxed">{localInsight}</p>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-muted-foreground text-xs leading-relaxed cursor-help border-b border-dashed border-muted-foreground/30">
+                {localInsight}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-sm whitespace-pre-line text-left">
+              {detailedInsight}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );
