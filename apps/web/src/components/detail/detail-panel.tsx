@@ -4,6 +4,12 @@ import { useTranslations } from "next-intl";
 import { useRecommendContext } from "@/context/recommend-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { LpVsHodlChart } from "./lp-vs-hodl-chart";
 import { IlChart } from "./il-chart";
 import { PriceChart } from "./price-chart";
@@ -44,15 +50,42 @@ export function DetailPanel() {
       <CardContent>
         <Tabs defaultValue="value">
           <TabsList className="w-full">
-            <TabsTrigger value="value" className="flex-1">
-              {t("lpVsHodl")}
-            </TabsTrigger>
-            <TabsTrigger value="il" className="flex-1">
-              {t("il")}
-            </TabsTrigger>
-            <TabsTrigger value="price" className="flex-1">
-              {t("price")}
-            </TabsTrigger>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger value="value" className="flex-1">
+                    {t("lpVsHodl")}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  {tt("chartLpVsHodl")}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger value="il" className="flex-1">
+                    {t("il")}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  {tt("chartIl")}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger value="price" className="flex-1">
+                    {t("price")}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  {tt("chartPrice")}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </TabsList>
           <TabsContent value="value" className="mt-3">
             <p className="text-muted-foreground text-xs mb-2">{tt("chartLpVsHodl")}</p>
