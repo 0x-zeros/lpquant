@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Copy, Check } from "lucide-react";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   Select,
   SelectContent,
@@ -218,6 +219,7 @@ function PoolTooltipContent({ pool }: { pool: PoolSummary }) {
 
 export function PairSelector({ value, onChange, limit, sortBy }: PairSelectorProps) {
   const t = useTranslations("input");
+  const tt = useTranslations("tooltips");
   const { pools, isLoading, error } = usePools(limit, sortBy);
 
   useEffect(() => {
@@ -229,7 +231,10 @@ export function PairSelector({ value, onChange, limit, sortBy }: PairSelectorPro
 
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{t("pair")}</label>
+      <label className="text-sm font-medium flex items-center gap-1">
+        {t("pair")}
+        <InfoTip content={tt("pair")} />
+      </label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select pool" />

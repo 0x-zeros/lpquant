@@ -6,9 +6,11 @@ import { RecommendationCard } from "./recommendation-card";
 import { ExtremeCard } from "./extreme-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export function CardList() {
   const t = useTranslations("cards");
+  const tt = useTranslations("tooltips");
   const { data, loading, error, selectedKey, setSelectedKey } =
     useRecommendContext();
 
@@ -45,7 +47,10 @@ export function CardList() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-[#00d2ff]">{t("topTitle")}</h2>
+      <h2 className="text-lg font-semibold text-[#00d2ff] flex items-center gap-1.5">
+        {t("topTitle")}
+        <InfoTip content={tt("topRecommendations")} />
+      </h2>
       {data.top3.map((c, i) => (
         <RecommendationCard
           key={`top${i + 1}`}
@@ -57,7 +62,10 @@ export function CardList() {
       ))}
 
       <Separator />
-      <h2 className="text-lg font-semibold text-amber-400">{t("extremeTitle")}</h2>
+      <h2 className="text-lg font-semibold text-amber-400 flex items-center gap-1.5">
+        {t("extremeTitle")}
+        <InfoTip content={tt("extremeRanges")} />
+      </h2>
 
       <ExtremeCard
         candidate={data.extreme_2pct}

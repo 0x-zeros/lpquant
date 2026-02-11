@@ -32,6 +32,7 @@ class CandidateResult(BaseModel):
     metrics: BacktestMetrics
     score: float
     insight: str
+    insight_data: dict | None = None
 
 
 class ChartMarker(BaseModel):

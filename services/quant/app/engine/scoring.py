@@ -98,6 +98,7 @@ def score_candidates(
     # Generate insights
     for cand in candidates:
         cand["insight"] = _generate_insight(cand)
+        cand["insight_data"] = _generate_insight_data(cand)
 
     # Sort descending by score
     candidates.sort(key=lambda c: c["score"], reverse=True)
@@ -114,7 +115,6 @@ def _generate_insight(cand: dict) -> str:
     width_pct: float = cand.get("width_pct", 0.0)
     in_range = metrics.in_range_pct
     il = metrics.max_il_pct
-    eff = metrics.capital_efficiency
     lp_vs_hodl = metrics.lp_vs_hodl_pct
 
     parts: list[str] = []
@@ -147,3 +147,27 @@ def _generate_insight(cand: dict) -> str:
         parts.append(f"max IL reached {il:.1f}% -- consider tighter rebalance")
 
     return ". ".join(parts) + "."
+
+
+def _generate_insight_data(cand: dict) -> dict:
+    """Return structured insight data for client-side i18n rendering."""
+    metrics: BacktestMetrics = cand["metrics"]
+    width_pct: float = cand.get("width_pct", 0.0)
+
+    if width_pct < 3:
+        width_class = "tight"
+    elif width_pct < 10:
+        width_class = "moderate"
+    else:
+        width_class = "wide"
+
+    return {
+        "width_class": width_class,
+        "width_pct": round(width_pct, 1),
+        "in_range_pct": round(metrics.in_range_pct, 0),
+        "lp_vs_hodl_pct": round(metrics.lp_vs_hodl_pct, 1),
+        "lp_outperforms": metrics.lp_vs_hodl_pct > 0,
+        "lp_underperforms_significant": metrics.lp_vs_hodl_pct < -5,
+        "max_il_pct": round(metrics.max_il_pct, 1),
+        "il_warning": metrics.max_il_pct > 10,
+    }

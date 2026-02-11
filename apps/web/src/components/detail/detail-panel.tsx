@@ -11,6 +11,7 @@ import { ExportButton } from "./export-button";
 
 export function DetailPanel() {
   const t = useTranslations("detail");
+  const tt = useTranslations("tooltips");
   const { data, selectedKey } = useRecommendContext();
 
   if (!data || !selectedKey) {
@@ -54,12 +55,15 @@ export function DetailPanel() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="value" className="mt-3">
+            <p className="text-muted-foreground text-xs mb-2">{tt("chartLpVsHodl")}</p>
             <LpVsHodlChart series={series} />
           </TabsContent>
           <TabsContent value="il" className="mt-3">
+            <p className="text-muted-foreground text-xs mb-2">{tt("chartIl")}</p>
             <IlChart series={series} />
           </TabsContent>
           <TabsContent value="price" className="mt-3">
+            <p className="text-muted-foreground text-xs mb-2">{tt("chartPrice")}</p>
             <PriceChart series={series} />
           </TabsContent>
         </Tabs>

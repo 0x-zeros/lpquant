@@ -63,6 +63,17 @@ export interface BacktestMetrics {
   capital_efficiency: number;
 }
 
+export interface InsightData {
+  width_class: "tight" | "moderate" | "wide";
+  width_pct: number;
+  in_range_pct: number;
+  lp_vs_hodl_pct: number;
+  lp_outperforms: boolean;
+  lp_underperforms_significant: boolean;
+  max_il_pct: number;
+  il_warning: boolean;
+}
+
 export interface CandidateResult {
   strategy: string;
   pa: number;
@@ -74,6 +85,7 @@ export interface CandidateResult {
   metrics: BacktestMetrics;
   score: number;
   insight: string;
+  insight_data?: InsightData | null;
 }
 
 export interface ChartMarker {

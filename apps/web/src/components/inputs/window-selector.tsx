@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InfoTip } from "@/components/ui/info-tip";
 
 const WINDOWS = [
   { value: 7, label: "7D" },
@@ -18,10 +19,14 @@ interface WindowSelectorProps {
 
 export function WindowSelector({ value, onChange }: WindowSelectorProps) {
   const t = useTranslations("input");
+  const tt = useTranslations("tooltips");
 
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{t("window")}</label>
+      <label className="text-sm font-medium flex items-center gap-1">
+        {t("window")}
+        <InfoTip content={tt("window")} />
+      </label>
       <Tabs value={String(value)} onValueChange={(v) => onChange(Number(v))}>
         <TabsList className="w-full">
           {WINDOWS.map((w) => (

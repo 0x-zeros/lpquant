@@ -3,7 +3,15 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MetricBadge } from "./metric-badge";
+import { InfoTip } from "@/components/ui/info-tip";
+import { buildInsight } from "@/lib/build-insight";
 import { cn } from "@/lib/utils";
 import type { CandidateResult } from "@/lib/types";
 
@@ -40,8 +48,11 @@ export function RecommendationCard({
 }: RecommendationCardProps) {
   const tc = useTranslations("cards");
   const tm = useTranslations("metrics");
-  const { pa, pb, tick_lower, tick_upper, metrics, score, insight, strategy } =
+  const tt = useTranslations("tooltips");
+  const { pa, pb, tick_lower, tick_upper, metrics, score, insight, strategy, insight_data } =
     candidate;
+
+  const localInsight = buildInsight(insight_data, insight, tt);
 
   return (
     <Card
@@ -60,8 +71,20 @@ export function RecommendationCard({
             ${pa.toFixed(4)} — ${pb.toFixed(4)}
           </div>
           <div className="text-muted-foreground text-xs">
-            {tc("ticks")} {tick_lower} → {tick_upper} | {strategy} | {tc("score")}{" "}
+            {tc("ticks")} {tick_lower} → {tick_upper} |{" "}
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help">{strategy}</span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  {tt("strategy")}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {" "}| {tc("score")}{" "}
             <span className="font-semibold">{score.toFixed(1)}</span>
+            <span className="ml-0.5"><InfoTip content={tt("score")} side="right" /></span>
           </div>
         </div>
       </CardHeader>
@@ -71,33 +94,39 @@ export function RecommendationCard({
             label={tm("inRange")}
             value={`${metrics.in_range_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.in_range_pct, 80, 50)}
+            tooltip={tt("metricInRange")}
           />
           <MetricBadge
             label={tm("touches")}
             value={String(metrics.touch_count)}
             variant={metricVariant(metrics.touch_count, 5, 15, true)}
+            tooltip={tt("metricTouches")}
           />
           <MetricBadge
             label={tm("meanExit")}
             value={formatDuration(metrics.mean_time_to_exit_hours)}
+            tooltip={tt("metricMeanExit")}
           />
           <MetricBadge
             label={tm("lpVsHodl")}
             value={`${metrics.lp_vs_hodl_pct >= 0 ? "+" : ""}${metrics.lp_vs_hodl_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.lp_vs_hodl_pct, 0, -5)}
+            tooltip={tt("metricLpVsHodl")}
           />
           <MetricBadge
             label={tm("maxIl")}
             value={`${metrics.max_il_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.max_il_pct, 5, 15, true)}
+            tooltip={tt("metricMaxIl")}
           />
           <MetricBadge
             label={tm("maxDd")}
             value={`${metrics.max_drawdown_pct.toFixed(1)}%`}
             variant={metricVariant(metrics.max_drawdown_pct, 10, 25, true)}
+            tooltip={tt("metricMaxDd")}
           />
         </div>
-        <p className="text-muted-foreground text-xs leading-relaxed">{insight}</p>
+        <p className="text-muted-foreground text-xs leading-relaxed">{localInsight}</p>
       </CardContent>
     </Card>
   );

@@ -1,6 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
+import { InfoTip } from "@/components/ui/info-tip";
 import { DEFAULT_POOL_LIMIT, MAX_POOL_LIMIT } from "@/lib/constants";
 
 interface PoolLimitInputProps {
@@ -9,9 +11,15 @@ interface PoolLimitInputProps {
 }
 
 export function PoolLimitInput({ value, onChange }: PoolLimitInputProps) {
+  const t = useTranslations("input");
+  const tt = useTranslations("tooltips");
+
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">Top Pools</label>
+      <label className="text-sm font-medium flex items-center gap-1">
+        {t("poolLimit")}
+        <InfoTip content={tt("poolLimit")} />
+      </label>
       <Input
         type="number"
         min={1}
