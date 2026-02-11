@@ -5,7 +5,7 @@ const envSchema = z.object({
   SUI_RPC_URL: z.string().default("https://fullnode.mainnet.sui.io:443"),
   CETUS_POOLS_API_URL: z
     .string()
-    .default("https://api-sui.cetus.zone/v2/sui/pools_info"),
+    .default("https://api-sui.cetus.zone/v2/sui/stats_pools"),
   CETUS_AGGREGATOR_URL: z
     .string()
     .default("https://api-sui.cetus.zone/router_v3/find_routes"),

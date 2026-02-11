@@ -29,7 +29,22 @@
       "Bash(uv run python:*)",
       "Bash(curl:*)",
       "Bash(python3:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npm view:*)",
+      "Bash(nvm ls-remote:*)",
+      "Bash(node:*)",
+      "Bash(source:*)",
+      "Bash(nvm install:*)",
+      "Bash(nvm use:*)",
+      "Bash(pnpm install:*)",
+      "Bash(corepack enable:*)",
+      "Bash(corepack prepare:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(pnpm ls:*)",
+      "Bash(yes:*)",
+      "Bash(pnpm --filter web build:*)",
+      "Bash(pnpm --filter web add:*)",
+      "Bash(find:*)"
     ]
   }
 }

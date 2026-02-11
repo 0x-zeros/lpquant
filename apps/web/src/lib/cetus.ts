@@ -11,8 +11,8 @@ const POOL_CONFIG_TTL = 60 * 1000; // 1 minute
 const COIN_META_TTL = 60 * 60 * 1000; // 1 hour
 const STABLE_QUOTES = new Set(["USDC", "USDT", "FDUSD", "BUSD"]);
 const POOLS_API_FALLBACKS = [
-  "https://api-sui.cetus.zone/v2/sui/pools_info",
-  "https://api.cetus.zone/v2/sui/pools_info",
+  "https://api-sui.cetus.zone/v2/sui/stats_pools",
+  "https://api.cetus.zone/v2/sui/stats_pools",
 ];
 
 type PoolsInfoEntry = {
@@ -21,14 +21,23 @@ type PoolsInfoEntry = {
   coin_b?: Record<string, unknown>;
 } & Record<string, unknown>;
 
+async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  throw new Error("withRetry exhausted");
+}
+
 let sdkInstance: CetusClmmSDK | null = null;
 
 function getSDK() {
   if (!sdkInstance) {
-    sdkInstance = CetusClmmSDK.createSDK({
-      env: "mainnet",
-      full_rpc_url: env.SUI_RPC_URL,
-    });
+    sdkInstance = CetusClmmSDK.createSDK({ env: "mainnet" });
   }
   return sdkInstance;
 }
@@ -95,39 +104,86 @@ function getField(obj: Record<string, unknown> | undefined, keys: string[]): unk
 async function fetchPoolsInfo(): Promise<PoolsInfoEntry[]> {
   const cacheKey = "cetus:pools_info";
   const cached = cacheGet<PoolsInfoEntry[]>(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    console.log("[cetus] fetchPoolsInfo: cache hit, count =", cached.length);
+    return cached;
+  }
 
   const urls = [
     env.CETUS_POOLS_API_URL,
     ...POOLS_API_FALLBACKS.filter((url) => url !== env.CETUS_POOLS_API_URL),
   ].filter((url): url is string => Boolean(url && url.trim()));
+  console.log("[cetus] fetchPoolsInfo: trying URLs =", urls);
 
   let lastError: string | null = null;
   for (const url of urls) {
     try {
+      console.log("[cetus] fetchPoolsInfo: fetching", url);
       const res = await fetch(url);
+      console.log("[cetus] fetchPoolsInfo: status =", res.status, res.statusText);
       if (!res.ok) {
         lastError = `Cetus pools API error (${res.status}) for ${url}`;
+        console.log("[cetus] fetchPoolsInfo: not ok, skipping");
         continue;
       }
       const json = await res.json();
-      const list =
-        (json?.data?.lp_list as PoolsInfoEntry[] | undefined) ??
-        (json?.data?.pools as PoolsInfoEntry[] | undefined) ??
-        (json?.data as PoolsInfoEntry[] | undefined) ??
-        (json?.pools as PoolsInfoEntry[] | undefined) ??
+      const topKeys = Object.keys(json ?? {});
+      const dataKeys = json?.data ? Object.keys(json.data) : [];
+      console.log("[cetus] fetchPoolsInfo: json.code =", json?.code, "| topKeys =", topKeys, "| data keys =", dataKeys);
+
+      const apiCode = json?.code;
+      const isCodeOk = apiCode === undefined || apiCode === 200 || apiCode === 0 || apiCode === "OK";
+      console.log("[cetus] fetchPoolsInfo: apiCode =", apiCode, "isCodeOk =", isCodeOk);
+      if (!isCodeOk) {
+        lastError = `Cetus API returned code ${apiCode} for ${url}`;
+        console.log("[cetus] fetchPoolsInfo: bad code, skipping");
+        continue;
+      }
+
+      const fromLpList = json?.data?.lp_list;
+      const fromPools = json?.data?.pools;
+      const fromData = json?.data;
+      const fromTopPools = json?.pools;
+      console.log("[cetus] fetchPoolsInfo: data.lp_list?", Array.isArray(fromLpList) ? fromLpList.length : typeof fromLpList,
+        "| data.pools?", Array.isArray(fromPools) ? fromPools.length : typeof fromPools,
+        "| data isArray?", Array.isArray(fromData),
+        "| json.pools?", Array.isArray(fromTopPools) ? fromTopPools.length : typeof fromTopPools);
+
+      const raw =
+        (fromLpList as PoolsInfoEntry[] | undefined) ??
+        (fromPools as PoolsInfoEntry[] | undefined) ??
+        (Array.isArray(fromData) ? fromData as PoolsInfoEntry[] : undefined) ??
+        (fromTopPools as PoolsInfoEntry[] | undefined) ??
         [];
+      console.log("[cetus] fetchPoolsInfo: raw entries =", raw.length);
+
+      if (raw.length > 0) {
+        const sample = raw[0] as Record<string, unknown>;
+        console.log("[cetus] fetchPoolsInfo: sample entry keys =", Object.keys(sample));
+        if (sample.pool) console.log("[cetus] fetchPoolsInfo: sample.pool keys =", Object.keys(sample.pool as Record<string, unknown>));
+        if (sample.coin_a) console.log("[cetus] fetchPoolsInfo: sample.coin_a keys =", Object.keys(sample.coin_a as Record<string, unknown>));
+        if (sample.coin_b) console.log("[cetus] fetchPoolsInfo: sample.coin_b keys =", Object.keys(sample.coin_b as Record<string, unknown>));
+      }
+
+      const list = raw.filter((entry) => {
+        const closed = (entry as Record<string, unknown>).is_closed;
+        return closed !== true && closed !== 1;
+      });
+      console.log("[cetus] fetchPoolsInfo: after is_closed filter =", list.length);
 
       cacheSet(cacheKey, list, POOLS_CACHE_TTL);
       return list;
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
+      console.error("[cetus] fetchPoolsInfo: error for", url, ":", lastError);
     }
   }
 
+  console.error("[cetus] fetchPoolsInfo: all URLs failed, lastError =", lastError);
   throw new Error(lastError || "Failed to fetch Cetus pools API");
 }
 
+let _buildLogCount = 0;
 function buildPoolSummary(entry: PoolsInfoEntry): PoolSummary | null {
   const pool = (entry.pool ?? entry) as Record<string, unknown>;
   const coinA = (entry.coin_a ?? entry.coinA) as Record<string, unknown> | undefined;
@@ -142,13 +198,20 @@ function buildPoolSummary(entry: PoolsInfoEntry): PoolSummary | null {
     "is_white_list",
   ]);
   if (verifiedFlag === false || verifiedFlag === 0) {
+    if (_buildLogCount < 3) console.log("[cetus] buildPoolSummary: skipped (not verified), verifiedFlag =", verifiedFlag);
     return null;
   }
 
   const poolId =
     (getField(pool, ["address", "pool_id", "poolId", "id"]) as string | undefined) ??
     (getField(entry, ["pool_id", "poolId", "id"]) as string | undefined);
-  if (!poolId) return null;
+  if (!poolId) {
+    if (_buildLogCount < 3) {
+      console.log("[cetus] buildPoolSummary: skipped (no poolId), pool keys =", Object.keys(pool), "entry keys =", Object.keys(entry));
+      _buildLogCount++;
+    }
+    return null;
+  }
 
   const symbolA = normalizeSymbol(
     (getField(coinA, ["symbol", "coin_symbol", "name"]) as string | undefined) ??
@@ -164,17 +227,19 @@ function buildPoolSummary(entry: PoolsInfoEntry): PoolSummary | null {
   const feeRate = normalizeFeeRate(feeRaw);
 
   const volume24h =
-    parseMetric(pool, ["volume_24h", "volume24h", "vol_24h", "vol24h"]) ??
-    parseMetric(entry, ["volume_24h", "volume24h", "vol_24h", "vol24h"]);
+    parseMetric(pool, ["volume_24h", "volume24h", "vol_24h", "vol24h", "vol_in_usd_24h"]) ??
+    parseMetric(entry, ["volume_24h", "volume24h", "vol_24h", "vol24h", "vol_in_usd_24h"]);
   const fees24h =
-    parseMetric(pool, ["fees_24h", "fee_24h", "fees24h", "fee24h"]) ??
-    parseMetric(entry, ["fees_24h", "fee_24h", "fees24h", "fee24h"]);
+    parseMetric(pool, ["fees_24h", "fee_24h", "fees24h", "fee24h", "fee_24_h"]) ??
+    parseMetric(entry, ["fees_24h", "fee_24h", "fees24h", "fee24h", "fee_24_h"]);
+  const aprObj = entry.apr as Record<string, unknown> | undefined;
   const apr =
-    parseMetric(pool, ["apr", "apr_24h", "apr24h"]) ??
-    parseMetric(entry, ["apr", "apr_24h", "apr24h"]);
+    parseMetric(pool, ["total_apr", "apr", "apr_24h", "apr24h"]) ??
+    parseMetric(entry, ["total_apr", "apr", "apr_24h", "apr24h"]) ??
+    (aprObj ? parseMetric(aprObj, ["fee_apr_24h"]) : null);
   const tvl =
-    parseMetric(pool, ["tvl", "tvl_usd", "liquidity"]) ??
-    parseMetric(entry, ["tvl", "tvl_usd", "liquidity"]);
+    parseMetric(pool, ["tvl", "tvl_usd", "liquidity", "pure_tvl_in_usd"]) ??
+    parseMetric(entry, ["tvl", "tvl_usd", "liquidity", "pure_tvl_in_usd"]);
 
   const decimalsA =
     toNumber(getField(coinA, ["decimals"])) ??
@@ -226,8 +291,10 @@ async function getCoinMetadata(coinType: string): Promise<{ decimals: number } |
   const cached = cacheGet<{ decimals: number }>(cacheKey);
   if (cached) return cached;
 
-  const sdk = getSDK() as unknown as { Pool?: { getCoinMetadata?: (t: string) => Promise<{ decimals: number }> } };
-  const meta = await sdk.Pool?.getCoinMetadata?.(coinType);
+  const sdk = getSDK() as unknown as {
+    FullClient?: { fetchCoinMetadata?: (t: string) => Promise<{ decimals: number } | null> };
+  };
+  const meta = await sdk.FullClient?.fetchCoinMetadata?.(coinType);
   if (meta?.decimals !== undefined) {
     const result = { decimals: Number(meta.decimals) };
     cacheSet(cacheKey, result, COIN_META_TTL);
@@ -245,11 +312,19 @@ export async function getPoolsSummary(options?: {
 
   try {
     const entries = await fetchPoolsInfo();
-    pools = entries
-      .map(buildPoolSummary)
-      .filter((p): p is PoolSummary => Boolean(p));
-  } catch {
+    console.log("[cetus] getPoolsSummary: fetchPoolsInfo returned", entries.length, "entries");
+    _buildLogCount = 0;
+    const mapped = entries.map(buildPoolSummary);
+    const nullCount = mapped.filter((p) => p === null).length;
+    pools = mapped.filter((p): p is PoolSummary => Boolean(p));
+    console.log("[cetus] getPoolsSummary: buildPoolSummary results: total =", mapped.length, "| valid =", pools.length, "| null =", nullCount);
+    if (pools.length > 0) {
+      console.log("[cetus] getPoolsSummary: first pool =", JSON.stringify(pools[0]));
+    }
+  } catch (err) {
+    console.error("[cetus] getPoolsSummary: fetchPoolsInfo failed, falling back to SDK:", err instanceof Error ? err.message : err);
     pools = await getPoolsSummaryFromSdk();
+    console.log("[cetus] getPoolsSummary: SDK fallback returned", pools.length, "pools");
   }
 
   const sortable = [...pools];
@@ -263,12 +338,15 @@ export async function getPoolsSummary(options?: {
     return bNum - aNum;
   });
 
-  return sortable.slice(0, limit);
+  const result = sortable.slice(0, limit);
+  console.log("[cetus] getPoolsSummary: returning", result.length, "pools (limit =", limit, ", sortBy =", sortBy, ")");
+  return result;
 }
 
 async function getPoolsSummaryFromSdk(): Promise<PoolSummary[]> {
-  const sdk = getSDK() as unknown as { Pool?: { getPools?: () => Promise<unknown> } };
-  const pools = await sdk.Pool?.getPools?.();
+  const sdk = getSDK();
+  const page = await sdk.Pool.getPoolsWithPage();
+  const pools = page?.data;
   if (!Array.isArray(pools)) {
     throw new Error("Cetus SDK returned empty pool list");
   }
@@ -346,7 +424,7 @@ export async function getPoolConfig(
   if (cached) return cached;
 
   const sdk = getSDK();
-  const pool = (await sdk.Pool.getPool(poolId)) as Record<string, unknown> | null;
+  const pool = (await withRetry(() => sdk.Pool.getPool(poolId))) as Record<string, unknown> | null;
   if (!pool) {
     throw new Error(`Pool not found: ${poolId}`);
   }
