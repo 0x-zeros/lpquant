@@ -5,11 +5,11 @@ import { cacheGet, cacheSet } from "./cache";
 import { env } from "./env";
 import type { PoolConfig, PoolSummary } from "./types";
 import { getAggregatorPrice } from "./aggregator";
+import { resolveSymbol, deriveBinanceSymbol } from "./tokens";
 
 const POOLS_CACHE_TTL = 60 * 1000; // 1 minute
 const POOL_CONFIG_TTL = 60 * 1000; // 1 minute
 const COIN_META_TTL = 60 * 60 * 1000; // 1 hour
-const STABLE_QUOTES = new Set(["USDC", "USDT", "FDUSD", "BUSD"]);
 const POOLS_API_FALLBACKS = [
   "https://api-sui.cetus.zone/v2/sui/stats_pools",
   "https://api.cetus.zone/v2/sui/stats_pools",
@@ -55,27 +55,6 @@ function toNumber(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
-}
-
-function normalizeSymbol(raw: string | undefined): string {
-  if (!raw) return "";
-  const symbol = raw.toUpperCase().replace(/\s+/g, "");
-  if (symbol === "WETH") return "ETH";
-  if (symbol === "WBTC") return "BTC";
-  return symbol;
-}
-
-function shortType(coinType: string | undefined): string {
-  if (!coinType) return "";
-  const parts = coinType.split("::");
-  return normalizeSymbol(parts[parts.length - 1]);
-}
-
-function deriveBinanceSymbol(symbolA: string, symbolB: string): string | null {
-  if (!symbolA || !symbolB) return null;
-  if (STABLE_QUOTES.has(symbolB)) return `${symbolA}${symbolB}`;
-  if (STABLE_QUOTES.has(symbolA)) return `${symbolB}${symbolA}`;
-  return `${symbolA}USDT`;
 }
 
 function parseMetric(entry: Record<string, unknown>, keys: string[]): number | null {
@@ -176,14 +155,15 @@ function buildPoolSummary(entry: PoolsInfoEntry): PoolSummary | null {
     (getField(entry, ["pool_id", "poolId", "id"]) as string | undefined);
   if (!poolId) return null;
 
-  const symbolA = normalizeSymbol(
-    (getField(coinA, ["symbol", "coin_symbol", "name"]) as string | undefined) ??
-      shortType(getField(coinA, ["address", "type"]) as string | undefined),
-  );
-  const symbolB = normalizeSymbol(
-    (getField(coinB, ["symbol", "coin_symbol", "name"]) as string | undefined) ??
-      shortType(getField(coinB, ["address", "type"]) as string | undefined),
-  );
+  const coinTypeA =
+    (getField(coinA, ["address", "type", "coin_type", "coinType"]) as string | undefined) ??
+    "";
+  const coinTypeB =
+    (getField(coinB, ["address", "type", "coin_type", "coinType"]) as string | undefined) ??
+    "";
+
+  const symbolA = resolveSymbol(coinTypeA);
+  const symbolB = resolveSymbol(coinTypeB);
   const symbol = symbolA && symbolB ? `${symbolA}/${symbolB}` : poolId.slice(0, 10);
 
   const feeRaw = parseMetric(pool, ["fee_rate", "fee", "feeRate"]);
@@ -213,14 +193,7 @@ function buildPoolSummary(entry: PoolsInfoEntry): PoolSummary | null {
     toNumber(getField(coinB, ["decimal"])) ??
     0;
 
-  const coinTypeA =
-    (getField(coinA, ["address", "type", "coin_type", "coinType"]) as string | undefined) ??
-    "";
-  const coinTypeB =
-    (getField(coinB, ["address", "type", "coin_type", "coinType"]) as string | undefined) ??
-    "";
-
-  const binanceSymbol = deriveBinanceSymbol(symbolA, symbolB);
+  const binanceSymbol = deriveBinanceSymbol(coinTypeA, coinTypeB);
 
   const logoUrlA = (getField(coinA, ["logo_url", "logo", "icon_url"]) as string | undefined) ?? null;
   const logoUrlB = (getField(coinB, ["logo_url", "logo", "icon_url"]) as string | undefined) ?? null;
@@ -329,8 +302,8 @@ async function buildPoolSummaryFromSdk(
     (getField(pool, ["coin_type_b", "coinTypeB", "coinB", "coin_b"]) as string | undefined) ??
     "";
 
-  const symbolA = shortType(coinTypeA);
-  const symbolB = shortType(coinTypeB);
+  const symbolA = resolveSymbol(coinTypeA);
+  const symbolB = resolveSymbol(coinTypeB);
   const symbol = symbolA && symbolB ? `${symbolA}/${symbolB}` : poolId.slice(0, 10);
 
   const feeRaw = parseMetric(pool, ["fee_rate", "fee", "feeRate"]);
@@ -359,7 +332,7 @@ async function buildPoolSummaryFromSdk(
     coin_type_b: coinTypeB,
     decimals_a: decimalsA,
     decimals_b: decimalsB,
-    binance_symbol: deriveBinanceSymbol(symbolA, symbolB),
+    binance_symbol: deriveBinanceSymbol(coinTypeA, coinTypeB),
     logo_url_a: null,
     logo_url_b: null,
   };

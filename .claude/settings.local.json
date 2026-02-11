@@ -44,7 +44,11 @@
       "Bash(yes:*)",
       "Bash(pnpm --filter web build:*)",
       "Bash(pnpm --filter web add:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(uv run pytest:*)",
+      "WebFetch(domain:docs.birdeye.so)",
+      "WebFetch(domain:blog.sui.io)",
+      "WebFetch(domain:docs.lombard.finance)"
     ]
   }
 }
