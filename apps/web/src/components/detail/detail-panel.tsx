@@ -45,19 +45,25 @@ export function DetailPanel() {
     );
   }
 
-  const fallbackAssetSymbol =
-    data.price_asset_side === "B"
+  const fallbackBaseSymbol =
+    data.base_side === "B"
       ? data.coin_symbol_b
-      : data.price_asset_side === "A"
+      : data.base_side === "A"
         ? data.coin_symbol_a
         : undefined;
-  const priceAssetSymbol = (data.price_asset_symbol ?? fallbackAssetSymbol ?? "").trim();
-  const priceQuoteSymbol = (data.price_quote_symbol ?? "USD").trim();
-  const showPriceToggle = priceAssetSymbol.length > 0;
+  const fallbackQuoteSymbol =
+    data.quote_side === "B"
+      ? data.coin_symbol_b
+      : data.quote_side === "A"
+        ? data.coin_symbol_a
+        : undefined;
+  const baseSymbol = (data.base_symbol ?? fallbackBaseSymbol ?? "").trim();
+  const quoteSymbol = (data.quote_symbol ?? fallbackQuoteSymbol ?? "").trim();
+  const showPriceToggle = baseSymbol.length > 0 && quoteSymbol.length > 0;
   const priceLabel = showPriceToggle
     ? priceMode === "quote"
-      ? `${priceQuoteSymbol} / ${priceAssetSymbol}`
-      : `${priceAssetSymbol} / ${priceQuoteSymbol}`
+      ? `${baseSymbol} / ${quoteSymbol}`
+      : `${quoteSymbol} / ${baseSymbol}`
     : t("price");
 
   return (
@@ -133,7 +139,7 @@ export function DetailPanel() {
                     }}
                     className="h-7 px-2 text-xs"
                   >
-                    {priceQuoteSymbol}
+                    {baseSymbol}
                   </Toggle>
                   <Toggle
                     size="sm"
@@ -144,7 +150,7 @@ export function DetailPanel() {
                     }}
                     className="h-7 px-2 text-xs"
                   >
-                    {priceAssetSymbol}
+                    {quoteSymbol}
                   </Toggle>
                 </div>
               )}

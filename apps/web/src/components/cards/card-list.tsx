@@ -50,6 +50,8 @@ export function CardList() {
     data.kline_source === "birdeye"
       ? tt("klineBirdeye")
       : tt("klineBinance");
+  const quoteSymbol = data.quote_symbol;
+  const quoteIsStable = data.quote_is_stable;
 
   return (
     <div className="space-y-4">
@@ -72,6 +74,8 @@ export function CardList() {
           rank={i + 1}
           selected={selectedKey === `top${i + 1}`}
           currentPrice={data.current_price}
+          quoteSymbol={quoteSymbol}
+          quoteIsStable={quoteIsStable}
           onClick={() => setSelectedKey(`top${i + 1}`)}
         />
       ))}
@@ -87,6 +91,8 @@ export function CardList() {
         label={t("range2")}
         selected={selectedKey === "extreme_2pct"}
         currentPrice={data.current_price}
+        quoteSymbol={quoteSymbol}
+        quoteIsStable={quoteIsStable}
         onClick={() => setSelectedKey("extreme_2pct")}
       />
       <ExtremeCard
@@ -94,6 +100,8 @@ export function CardList() {
         label={t("range5")}
         selected={selectedKey === "extreme_5pct"}
         currentPrice={data.current_price}
+        quoteSymbol={quoteSymbol}
+        quoteIsStable={quoteIsStable}
         onClick={() => setSelectedKey("extreme_5pct")}
       />
     </div>

@@ -4,7 +4,6 @@ export interface TokenInfo {
 }
 
 const STABLE_QUOTES = new Set(["USDC", "USDT", "FDUSD", "BUSD"]);
-const REFERENCE_QUOTES = new Set(["SUI", "BTC", "ETH", "SOL"]);
 
 /** Known Sui coin type → token info mapping */
 const TOKEN_REGISTRY: Record<string, TokenInfo> = {
@@ -72,57 +71,71 @@ export function isStableCoin(coinType: string): boolean {
   return resolveToken(coinType).isStable;
 }
 
-export function isReferenceCoin(coinType: string): boolean {
-  return REFERENCE_QUOTES.has(resolveToken(coinType).canonicalSymbol);
-}
-
 export type PricingSide = "A" | "B";
 
-export interface PricingSelection {
-  pricingCoinType: string;
-  pricingSymbol: string;
-  pricingSide: PricingSide;
-  reason: "stable" | "sui" | "btc" | "eth" | "sol" | "default";
+export interface BaseQuoteSelection {
+  baseCoinType: string;
+  quoteCoinType: string;
+  baseSymbol: string;
+  quoteSymbol: string;
+  baseSide: PricingSide;
+  quoteSide: PricingSide;
+  quoteRank: number;
 }
 
-export function selectPricingAsset(
+function quoteRank(symbol: string, isStable: boolean): number {
+  if (isStable) return 0;
+  switch (symbol) {
+    case "SUI":
+      return 1;
+    case "BTC":
+      return 2;
+    case "ETH":
+      return 3;
+    case "SOL":
+      return 4;
+    default:
+      return Number.POSITIVE_INFINITY;
+  }
+}
+
+export function selectBaseQuote(
   coinTypeA: string,
   coinTypeB: string,
-): PricingSelection {
+): BaseQuoteSelection {
   const tokenA = resolveToken(coinTypeA);
   const tokenB = resolveToken(coinTypeB);
+  const rankA = quoteRank(tokenA.canonicalSymbol, tokenA.isStable);
+  const rankB = quoteRank(tokenB.canonicalSymbol, tokenB.isStable);
 
-  const baseA: PricingSelection = {
-    pricingCoinType: coinTypeA,
-    pricingSymbol: tokenA.canonicalSymbol,
-    pricingSide: "A",
-    reason: "default",
+  const baseA: BaseQuoteSelection = {
+    baseCoinType: coinTypeA,
+    quoteCoinType: coinTypeB,
+    baseSymbol: tokenA.canonicalSymbol,
+    quoteSymbol: tokenB.canonicalSymbol,
+    baseSide: "A",
+    quoteSide: "B",
+    quoteRank: rankB,
   };
-  const baseB: PricingSelection = {
-    pricingCoinType: coinTypeB,
-    pricingSymbol: tokenB.canonicalSymbol,
-    pricingSide: "B",
-    reason: "default",
+  const baseB: BaseQuoteSelection = {
+    baseCoinType: coinTypeB,
+    quoteCoinType: coinTypeA,
+    baseSymbol: tokenB.canonicalSymbol,
+    quoteSymbol: tokenA.canonicalSymbol,
+    baseSide: "B",
+    quoteSide: "A",
+    quoteRank: rankA,
   };
 
-  if (tokenA.isStable && !tokenB.isStable) {
-    return { ...baseB, reason: "stable" };
-  }
-  if (tokenB.isStable && !tokenA.isStable) {
-    return { ...baseA, reason: "stable" };
+  if (rankA === rankB) {
+    return baseA;
   }
 
-  const refOrder = ["SUI", "BTC", "ETH", "SOL"] as const;
-  for (const ref of refOrder) {
-    if (tokenA.canonicalSymbol === ref && tokenB.canonicalSymbol !== ref) {
-      return { ...baseB, reason: ref.toLowerCase() as PricingSelection["reason"] };
-    }
-    if (tokenB.canonicalSymbol === ref && tokenA.canonicalSymbol !== ref) {
-      return { ...baseA, reason: ref.toLowerCase() as PricingSelection["reason"] };
-    }
-  }
+  return rankA < rankB ? baseB : baseA;
+}
 
-  return baseA;
+export function isStableSymbol(symbol: string): boolean {
+  return STABLE_QUOTES.has(symbol);
 }
 
 /** Derive Binance trading pair symbol from two coin types. Returns null if cannot determine. */
@@ -133,27 +146,26 @@ export function deriveBinanceSymbol(
   const symbolA = resolveToken(coinTypeA).canonicalSymbol;
   const symbolB = resolveToken(coinTypeB).canonicalSymbol;
   if (!symbolA || !symbolB) return null;
+  if (STABLE_QUOTES.has(symbolB)) return `${symbolA}${symbolB}`;
+  if (STABLE_QUOTES.has(symbolA)) return `${symbolB}${symbolA}`;
+  return `${symbolA}USDT`;
+}
 
-  const pricing = selectPricingAsset(coinTypeA, coinTypeB);
-  const baseSymbol = pricing.pricingSymbol;
-  if (!baseSymbol) return null;
-
-  const stableSymbol = STABLE_QUOTES.has(symbolA)
-    ? symbolA
-    : STABLE_QUOTES.has(symbolB)
-      ? symbolB
-      : null;
-
-  let quoteSymbol = "USDT";
-  if (!STABLE_QUOTES.has(baseSymbol) && stableSymbol) {
-    quoteSymbol = stableSymbol;
-  }
-
-  if (baseSymbol === quoteSymbol) {
-    quoteSymbol = baseSymbol === "USDT" ? "USDC" : "USDT";
-  }
-
+export function deriveBinanceSymbolForPair(
+  baseCoinType: string,
+  quoteCoinType: string,
+): string | null {
+  const baseSymbol = resolveToken(baseCoinType).canonicalSymbol;
+  const quoteSymbol = resolveToken(quoteCoinType).canonicalSymbol;
+  if (!baseSymbol || !quoteSymbol) return null;
   return `${baseSymbol}${quoteSymbol}`;
+}
+
+export function deriveBinanceUsdSymbol(coinType: string): string | null {
+  const symbol = resolveToken(coinType).canonicalSymbol;
+  if (!symbol) return null;
+  if (STABLE_QUOTES.has(symbol)) return `${symbol}USDT`;
+  return `${symbol}USDT`;
 }
 
 /** Return the address Birdeye expects (raw coin type) */

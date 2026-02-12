@@ -22,6 +22,8 @@ interface RecommendationCardProps {
   selected: boolean;
   currentPrice: number;
   onClick: () => void;
+  quoteSymbol?: string;
+  quoteIsStable?: boolean;
 }
 
 function metricVariant(value: number, goodThreshold: number, badThreshold: number, inverted = false) {
@@ -48,11 +50,16 @@ export function RecommendationCard({
   selected,
   currentPrice,
   onClick,
+  quoteSymbol,
+  quoteIsStable,
 }: RecommendationCardProps) {
   const tc = useTranslations("cards");
   const tm = useTranslations("metrics");
   const tt = useTranslations("tooltips");
   const { pa, pb, tick_lower, tick_upper, metrics, score, strategy } = candidate;
+  const rangeLabel = quoteIsStable
+    ? `$${pa.toFixed(4)} — $${pb.toFixed(4)}`
+    : `${pa.toFixed(4)} — ${pb.toFixed(4)}${quoteSymbol ? ` ${quoteSymbol}` : ""}`;
 
   const localInsight = buildInsight(candidate, tt);
   const detailedInsight = buildDetailedInsight(candidate, tt);
@@ -71,7 +78,7 @@ export function RecommendationCard({
         </Badge>
         <div className="flex-1">
           <div className="font-mono text-sm">
-            ${pa.toFixed(4)} — ${pb.toFixed(4)}
+            {rangeLabel}
           </div>
           <div className="text-muted-foreground text-xs">
             {tc("ticks")} {tick_lower} → {tick_upper} |{" "}
@@ -92,7 +99,13 @@ export function RecommendationCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
-        <PriceRangeMeta currentPrice={currentPrice} minPrice={pa} maxPrice={pb} />
+        <PriceRangeMeta
+          currentPrice={currentPrice}
+          minPrice={pa}
+          maxPrice={pb}
+          quoteSymbol={quoteSymbol}
+          quoteIsStable={quoteIsStable}
+        />
         <div className="grid grid-cols-3 gap-2">
           <MetricBadge
             label={tm("inRange")}

@@ -22,6 +22,8 @@ interface ExtremeCardProps {
   selected: boolean;
   currentPrice: number;
   onClick: () => void;
+  quoteSymbol?: string;
+  quoteIsStable?: boolean;
 }
 
 function formatDuration(hours: number) {
@@ -54,11 +56,16 @@ export function ExtremeCard({
   selected,
   currentPrice,
   onClick,
+  quoteSymbol,
+  quoteIsStable,
 }: ExtremeCardProps) {
   const tc = useTranslations("cards");
   const tm = useTranslations("metrics");
   const tt = useTranslations("tooltips");
   const { pa, pb, metrics, width_pct, requested_width_pct } = candidate;
+  const rangeLabel = quoteIsStable
+    ? `$${pa.toFixed(4)} — $${pb.toFixed(4)}`
+    : `${pa.toFixed(4)} — ${pb.toFixed(4)}${quoteSymbol ? ` ${quoteSymbol}` : ""}`;
   const requestedWidth = requested_width_pct ?? width_pct;
   const expectedTouch = formatDuration(metrics.mean_time_to_exit_hours);
 
@@ -79,7 +86,7 @@ export function ExtremeCard({
         </Badge>
         <div className="flex-1">
           <div className="font-mono text-sm">
-            ${pa.toFixed(4)} — ${pb.toFixed(4)}
+            {rangeLabel}
           </div>
           <div className="text-muted-foreground text-xs">
             {tc("requested")} {requestedWidth.toFixed(1)}%
@@ -94,7 +101,13 @@ export function ExtremeCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
-        <PriceRangeMeta currentPrice={currentPrice} minPrice={pa} maxPrice={pb} />
+        <PriceRangeMeta
+          currentPrice={currentPrice}
+          minPrice={pa}
+          maxPrice={pb}
+          quoteSymbol={quoteSymbol}
+          quoteIsStable={quoteIsStable}
+        />
         <div className="grid grid-cols-3 gap-2">
           <MetricBadge
             label={tm("inRange")}

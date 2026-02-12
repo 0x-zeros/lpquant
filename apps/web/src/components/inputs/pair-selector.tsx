@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { usePools } from "@/hooks/use-pools";
 import type { PoolSummary } from "@/lib/types";
+import { selectBaseQuote } from "@/lib/tokens";
 
 interface PairSelectorProps {
   value: string;
@@ -83,20 +84,40 @@ function TokenIcon({
   );
 }
 
+function getDisplayPair(pool: PoolSummary) {
+  const selection = selectBaseQuote(pool.coin_type_a, pool.coin_type_b);
+  const baseLogo =
+    selection.baseSide === "A" ? pool.logo_url_a : pool.logo_url_b;
+  const quoteLogo =
+    selection.quoteSide === "A" ? pool.logo_url_a : pool.logo_url_b;
+  const displaySymbol =
+    selection.baseSymbol && selection.quoteSymbol
+      ? `${selection.baseSymbol}/${selection.quoteSymbol}`
+      : pool.symbol;
+  return {
+    symbol: displaySymbol,
+    baseSymbol: selection.baseSymbol,
+    quoteSymbol: selection.quoteSymbol,
+    baseLogo,
+    quoteLogo,
+    baseCoinType: selection.baseCoinType,
+    quoteCoinType: selection.quoteCoinType,
+  };
+}
+
 function TokenPairIcon({ pool }: { pool: PoolSummary }) {
-  const symbolA = pool.symbol.split("/")[0] ?? "";
-  const symbolB = pool.symbol.split("/")[1] ?? "";
+  const display = getDisplayPair(pool);
 
   return (
     <span className="relative mr-1.5 inline-flex h-6 w-9 shrink-0 items-center">
       <TokenIcon
-        src={pool.logo_url_a}
-        symbol={symbolA}
+        src={display.baseLogo}
+        symbol={display.baseSymbol}
         className="absolute left-0 z-10 h-5 w-5 ring-1 ring-background"
       />
       <TokenIcon
-        src={pool.logo_url_b}
-        symbol={symbolB}
+        src={display.quoteLogo}
+        symbol={display.quoteSymbol}
         className="absolute left-3 h-5 w-5 ring-1 ring-background"
       />
     </span>
@@ -104,12 +125,13 @@ function TokenPairIcon({ pool }: { pool: PoolSummary }) {
 }
 
 function PoolOption({ pool }: { pool: PoolSummary }) {
+  const display = getDisplayPair(pool);
   return (
     <div className="flex w-full flex-col">
       <div className="flex items-center justify-between">
         <span className="flex items-center font-medium">
           <TokenPairIcon pool={pool} />
-          {pool.symbol}
+          {display.symbol}
         </span>
         <span className="text-xs opacity-60">
           {formatFeeRate(pool.fee_rate)}
@@ -169,8 +191,7 @@ function AddressLink({
 }
 
 function PoolTooltipContent({ pool }: { pool: PoolSummary }) {
-  const symbolA = pool.symbol.split("/")[0] ?? "";
-  const symbolB = pool.symbol.split("/")[1] ?? "";
+  const display = getDisplayPair(pool);
   return (
     <div className="space-y-1.5 text-xs">
       <div className="flex items-center">
@@ -182,28 +203,28 @@ function PoolTooltipContent({ pool }: { pool: PoolSummary }) {
         />
         <CopyButton text={pool.pool_id} />
       </div>
-      {pool.coin_type_a && (
+      {display.baseCoinType && (
         <div className="flex items-center gap-1.5">
-          <TokenIcon src={pool.logo_url_a} symbol={symbolA} className="h-4 w-4" />
-          <span>{symbolA}</span>
+          <TokenIcon src={display.baseLogo} symbol={display.baseSymbol} className="h-4 w-4" />
+          <span>{display.baseSymbol}</span>
           <span className="flex-1" />
           <AddressLink
-            address={pool.coin_type_a}
-            href={`https://suivision.xyz/coin/${pool.coin_type_a}`}
+            address={display.baseCoinType}
+            href={`https://suivision.xyz/coin/${display.baseCoinType}`}
           />
-          <CopyButton text={pool.coin_type_a} />
+          <CopyButton text={display.baseCoinType} />
         </div>
       )}
-      {pool.coin_type_b && (
+      {display.quoteCoinType && (
         <div className="flex items-center gap-1.5">
-          <TokenIcon src={pool.logo_url_b} symbol={symbolB} className="h-4 w-4" />
-          <span>{symbolB}</span>
+          <TokenIcon src={display.quoteLogo} symbol={display.quoteSymbol} className="h-4 w-4" />
+          <span>{display.quoteSymbol}</span>
           <span className="flex-1" />
           <AddressLink
-            address={pool.coin_type_b}
-            href={`https://suivision.xyz/coin/${pool.coin_type_b}`}
+            address={display.quoteCoinType}
+            href={`https://suivision.xyz/coin/${display.quoteCoinType}`}
           />
-          <CopyButton text={pool.coin_type_b} />
+          <CopyButton text={display.quoteCoinType} />
         </div>
       )}
       {pool.tvl != null && (

@@ -3,7 +3,7 @@ import { getPoolConfig, getPoolSummaryById } from "@/lib/cetus";
 import { fetchKlinesForPool } from "@/lib/kline-source";
 import { callRecommend } from "@/lib/quant-client";
 import { DEFAULT_INTERVAL } from "@/lib/constants";
-import { resolveSymbol } from "@/lib/tokens";
+import { isStableCoin, resolveSymbol, selectBaseQuote } from "@/lib/tokens";
 
 export async function POST(request: Request) {
   try {
@@ -35,6 +35,21 @@ export async function POST(request: Request) {
       getPoolConfig(poolId),
     ]);
 
+    const selection = selectBaseQuote(
+      poolSummary.coin_type_a,
+      poolSummary.coin_type_b,
+    );
+    const invertPrice = selection.baseSide === "B";
+    const rawCurrentPrice = poolConfig.currentPrice;
+    const currentPrice =
+      rawCurrentPrice > 0 && invertPrice ? 1 / rawCurrentPrice : rawCurrentPrice;
+
+    let capitalForEngine = capital;
+    const quoteIsStable = isStableCoin(selection.quoteCoinType);
+    if (!quoteIsStable && klineResult.quoteUsdEntry && klineResult.quoteUsdEntry > 0) {
+      capitalForEngine = capital / klineResult.quoteUsdEntry;
+    }
+
     // Convert klines to array format for Python
     const klinesArray = klineResult.klines.map((k) => [
       k.openTime,
@@ -47,11 +62,11 @@ export async function POST(request: Request) {
 
     const result = await callRecommend({
       klines: klinesArray,
-      current_price: poolConfig.currentPrice,
+      current_price: currentPrice,
       tick_spacing: poolConfig.tickSpacing,
       fee_rate: poolConfig.feeRate,
       profile,
-      capital_usd: capital,
+      capital_usd: capitalForEngine,
       strategies,
     });
 
@@ -65,10 +80,12 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ...result,
       kline_source: klineResult.source,
-      price_asset_symbol: klineResult.pricing.pricingSymbol,
-      price_quote_symbol: "USD",
-      price_asset_side: klineResult.pricing.pricingSide,
-      pool_symbol: poolSummary.symbol,
+      base_symbol: selection.baseSymbol,
+      quote_symbol: selection.quoteSymbol,
+      base_side: selection.baseSide,
+      quote_side: selection.quoteSide,
+      quote_is_stable: quoteIsStable,
+      pool_symbol: `${selection.baseSymbol}/${selection.quoteSymbol}`,
       coin_symbol_a: coinSymbolA,
       coin_symbol_b: coinSymbolB,
     });
