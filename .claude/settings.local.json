@@ -49,7 +49,8 @@
       "WebFetch(domain:docs.birdeye.so)",
       "WebFetch(domain:blog.sui.io)",
       "WebFetch(domain:docs.lombard.finance)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(chmod:*)"
     ]
   }
 }

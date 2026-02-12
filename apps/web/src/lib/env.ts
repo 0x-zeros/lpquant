@@ -3,7 +3,10 @@ import dotenv from "dotenv";
 import { z } from "zod/v4";
 
 // Load .env from monorepo root (two levels up from apps/web)
-dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
+// In Docker, env vars are injected via docker-compose; skip dotenv loading
+if (!process.env.DOCKER) {
+  dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
+}
 
 const envSchema = z.object({
   QUANT_SERVICE_URL: z.string().default("http://localhost:8000"),

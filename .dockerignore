@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env
+.env.*
+!.env.production.example
+.vscode
+.idea
+.DS_Store
+services/quant/.venv
+services/quant/__pycache__
