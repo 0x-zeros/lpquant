@@ -1,10 +1,32 @@
 # LPQuant
 
-Concentrated liquidity LP strategy recommendation engine for Sui DEXs.
+[English](README.md) | [中文](README.zh.md)
+
+LPQuant is a concentrated‑liquidity range recommendation system for Sui DEX pools.
+Built for the **Sui Vibe Hackathon** (Cetus track), it turns historical price behavior into
+clear, actionable LP ranges with backtests, charts, and AI‑assisted explanations.
+
+## Highlights
+
+- **Base/Quote normalization** aligned with Cetus display conventions  
+  Quote priority: Stablecoins → SUI → BTC → ETH → SOL. Everything in the UI and math
+  is derived from this unified Base/Quote view.
+- **Top‑range recommendations** with transparent scoring and backtest metrics.
+- **Deep‑dive modal**: double‑click a recommendation to open full charts and details.
+- **AI Analysis tab**: built‑in LLM prompt & analysis workflow (no vendor lock‑in).
+- **Exportable results** in JSON for sharing or audit.
+
+## Screenshots
+
+<!-- Paste your screenshots here (GitHub renders relative image paths). -->
+
+![Screenshot 1](docs/screenshots/screenshot-1.png)
+![Screenshot 2](docs/screenshots/screenshot-2.png)
+![Screenshot 3](docs/screenshots/screenshot-3.png)
 
 ## Architecture
 
-Monorepo with two services connected via BFF pattern:
+Monorepo with two services connected via a BFF pattern:
 
 ```
 Browser → Next.js App Router UI
@@ -18,16 +40,24 @@ Browser → Next.js App Router UI
  klines
 ```
 
-- **Frontend** (`apps/web`): Next.js 16, React 19, shadcn/ui, TailwindCSS v4, lightweight-charts v5, next-intl (en/zh)
-- **BFF** (`apps/web/src/app/api/`): Route handlers orchestrating external data (Birdeye/Binance klines + Sui RPC pool data) and forwarding to Python engine
-- **Quant Engine** (`services/quant`): FastAPI + numpy/pandas — pure compute, receives klines + pool config, returns scored recommendations with backtest series
+- **Frontend** (`apps/web`): Next.js 16, React 19, shadcn/ui, TailwindCSS v4,
+  lightweight‑charts v5, next‑intl (en/zh)
+- **BFF** (`apps/web/src/app/api/`): Orchestrates kline sources + pool config,
+  forwards to the quant engine
+- **Quant Engine** (`services/quant`): FastAPI + numpy/pandas — computes metrics,
+  scores ranges, returns series for charts
 
-## Price Data Sources
+## Price Model & Data Sources
 
-Kline (OHLCV) data is fetched via a fallback chain:
+All prices are expressed as **Base / Quote** with a deterministic mapping:
 
-1. **Birdeye** (primary, if `BIRDEYE_API_KEY` is configured) — supports all Sui tokens via on-chain address
-2. **Binance** (fallback) — maps coin types to Binance trading pairs (e.g. SUI→SUIUSDT)
+- Quote priority: **Stablecoins → SUI → BTC → ETH → SOL**
+- If both sides are the same class (both stable / both outside list), keep coinA/coinB.
+
+Kline (OHLCV) sources:
+
+1. **Birdeye** (primary, if `BIRDEYE_API_KEY` is configured)  
+2. **Binance** (fallback, or ratio of USD pairs for non‑stable quotes)
 
 ## Development
 
@@ -50,6 +80,16 @@ uv sync && uv run uvicorn app.main:app --reload --port 8000
 | `QUANT_SERVICE_URL` | No | Python engine URL (default: `http://localhost:8000`) |
 | `SUI_RPC_URL` | No | Sui fullnode RPC (default: mainnet) |
 
+## Hackathon
+
+**Sui Vibe Hackathon — Build on Sui · Build the Vibe**  
+Organizer: HOH × Sui  
+Sponsors: Cetus, Bucket  
+
+This project was created for the **Cetus track**, with a focus on production‑ready
+LP decision tooling for Sui CLMM pools.
+
 ## Future Work
 
-- **Reconstruct price from Cetus swap events**: Build a full indexer to reconstruct historical OHLCV data directly from on-chain Cetus swap events, eliminating dependency on external price APIs (Birdeye/Binance).
+- **On‑chain price reconstruction**: index Cetus swap events to build native OHLCV,
+  removing external data dependency.
