@@ -6,6 +6,8 @@ LPQuant 是面向 Sui DEX 池的集中流动性区间推荐系统。
 为 **Sui Vibe Hackathon（Cetus 赛道）** 打造，基于历史价格行为给出清晰可执行的
 LP 区间建议，并提供回测指标、图表与 AI 辅助解读。
 
+在线演示：[lpquant-web.vercel.app/zh](https://lpquant-web.vercel.app/zh)
+
 ## 亮点
 
 - **Base/Quote 统一映射**，与 Cetus 展示习惯一致  

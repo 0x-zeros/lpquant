@@ -6,6 +6,8 @@ LPQuant is a concentrated‑liquidity range recommendation system for Sui DEX po
 Built for the **Sui Vibe Hackathon** (Cetus track), it turns historical price behavior into
 clear, actionable LP ranges with backtests, charts, and AI‑assisted explanations.
 
+Live demo: [lpquant-web.vercel.app](https://lpquant-web.vercel.app/)
+
 ## Highlights
 
 - **Base/Quote normalization** aligned with Cetus display conventions  
