@@ -19,10 +19,10 @@ clear, actionable LP ranges with backtests, charts, and AI‑assisted explanatio
 ## Screenshots
 
 <!-- Paste your screenshots here (GitHub renders relative image paths). -->
+![Screenshot 1](assets/images_md/image-2026-02-12T02-50-24-403Z.png)
+![Screenshot 2](assets/images_md/image-2026-02-12T02-52-25-820Z.png)
+![Screenshot 3](assets/images_md/image-2026-02-12T03-06-35-431Z.png)
 
-![Screenshot 1](docs/screenshots/screenshot-1.png)
-![Screenshot 2](docs/screenshots/screenshot-2.png)
-![Screenshot 3](docs/screenshots/screenshot-3.png)
 
 ## Architecture
 

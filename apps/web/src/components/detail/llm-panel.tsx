@@ -205,28 +205,7 @@ export function LlmPanel() {
       )}
 
       <div className="grid gap-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">{t("provider")}</label>
-            <Select
-              value={provider}
-              onValueChange={(value) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  provider: value as Provider,
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("provider")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="openai">{t("openai")}</SelectItem>
-                <SelectItem value="deepseek">{t("deepseek")}</SelectItem>
-                <SelectItem value="claude">{t("claude")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div className="space-y-1">
             <label className="text-sm font-medium">{t("mode")}</label>
             <Tabs
@@ -248,6 +227,29 @@ export function LlmPanel() {
               </TabsList>
             </Tabs>
           </div>
+          {settings.mode === "api" && (
+            <div className="space-y-1">
+              <label className="text-sm font-medium">{t("provider")}</label>
+              <Select
+                value={provider}
+                onValueChange={(value) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    provider: value as Provider,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("provider")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">{t("openai")}</SelectItem>
+                  <SelectItem value="deepseek">{t("deepseek")}</SelectItem>
+                  <SelectItem value="claude">{t("claude")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {settings.mode === "api" && (
@@ -331,7 +333,11 @@ export function LlmPanel() {
           </Button>
         </div>
         <Textarea value={promptText} readOnly className="min-h-[200px]" />
-        <p className="text-xs text-muted-foreground">{t("promptHint")}</p>
+        {settings.mode === "prompt" && (
+          <div className="rounded-lg border border-white/10 bg-muted/30 px-3 py-2 text-base font-medium leading-relaxed">
+            {t("promptHint")}
+          </div>
+        )}
       </div>
 
       {settings.mode === "api" && (

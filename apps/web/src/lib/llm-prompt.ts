@@ -41,7 +41,8 @@ function getSelectedCandidate(data: RecommendResponse, selectedKey: string): Can
 }
 
 export function buildLlmPrompt({ data, selectedKey, request, locale }: PromptInput) {
-  const language = locale === "zh" ? "简体中文" : "English";
+  const isZh = locale === "zh";
+  const language = isZh ? "简体中文" : "English";
   const selected = getSelectedCandidate(data, selectedKey);
 
   const payload = {
@@ -67,18 +68,33 @@ export function buildLlmPrompt({ data, selectedKey, request, locale }: PromptInp
     selected_candidate: selected ? formatCandidate(selected) : null,
   };
 
-  return [
-    `You are an expert CLMM liquidity provider strategist for Cetus on Sui.`,
-    `Use the data below to give a concise recommendation for the selected range.`,
-    `Answer in ${language}. Do not invent missing values.`,
-    ``,
-    `Output format:`,
-    `1. Summary (1-2 sentences)`,
-    `2. Recommended range (Pa/Pb/width) and reasoning`,
-    `3. Risk notes + rebalancing suggestion`,
-    `4. If another candidate is clearly better, say which and why`,
-    ``,
-    `DATA:`,
-    JSON.stringify(payload, null, 2),
-  ].join("\n");
+  const header = isZh
+    ? [
+        `你是 Sui 上 Cetus CLMM 的专业做市/LP 策略顾问。`,
+        `请基于以下数据，对所选区间给出简洁清晰的建议。`,
+        `请用${language}回答，不要编造缺失数据。`,
+        ``,
+        `输出格式：`,
+        `1. 总结（1-2 句）`,
+        `2. 推荐区间（Pa/Pb/width）及理由`,
+        `3. 风险提示 + 调仓建议`,
+        `4. 若有明显更优候选，请说明是哪一个及原因`,
+        ``,
+        `DATA:`,
+      ]
+    : [
+        `You are an expert CLMM liquidity provider strategist for Cetus on Sui.`,
+        `Use the data below to give a concise recommendation for the selected range.`,
+        `Answer in ${language}. Do not invent missing values.`,
+        ``,
+        `Output format:`,
+        `1. Summary (1-2 sentences)`,
+        `2. Recommended range (Pa/Pb/width) and reasoning`,
+        `3. Risk notes + rebalancing suggestion`,
+        `4. If another candidate is clearly better, say which and why`,
+        ``,
+        `DATA:`,
+      ];
+
+  return [...header, JSON.stringify(payload, null, 2)].join("\n");
 }

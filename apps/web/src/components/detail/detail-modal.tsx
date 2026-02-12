@@ -85,7 +85,7 @@ export function DetailModal({ open, selectedKey, onClose }: DetailModalProps) {
         aria-label="Close"
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#0b0f1e] shadow-2xl">
+        <div className="relative z-10 w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-[#0b0f1e] shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div className="text-sm text-muted-foreground">{data.pool_symbol}</div>
             <div className="text-base font-semibold">{t("title")}</div>
@@ -99,8 +99,8 @@ export function DetailModal({ open, selectedKey, onClose }: DetailModalProps) {
             </button>
           </div>
           <div className="max-h-[80vh] overflow-y-auto p-4">
-            <div className="space-y-4">
-              {card}
+            <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
+              <div className="space-y-4">{card}</div>
               <DetailPanel />
             </div>
           </div>

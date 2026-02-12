@@ -20,9 +20,9 @@ LP 区间建议，并提供回测指标、图表与 AI 辅助解读。
 
 <!-- 在此处粘贴你的截图（GitHub 可渲染相对路径图片） -->
 
-![截图 1](docs/screenshots/screenshot-1.png)
-![截图 2](docs/screenshots/screenshot-2.png)
-![截图 3](docs/screenshots/screenshot-3.png)
+![截图 1](assets/images_md/image-2026-02-12T02-46-22-813Z.png)
+![截图 2](assets/images_md/image-2026-02-12T02-53-10-790Z.png)
+![截图 3](assets/images_md/image-2026-02-12T03-05-19-710Z.png)
 
 ## 架构
 

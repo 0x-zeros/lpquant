@@ -84,7 +84,7 @@
     "copyResponse": "Copy Response",
     "copied": "Copied",
     "prompt": "Prompt",
-    "promptHint": "Copy the prompt and paste it into ChatGPT or another app.",
+    "promptHint": "How to use: 1) Click “Copy Prompt”. 2) Open ChatGPT or another LLM app. 3) Paste and send. The model should reply with a recommendation for the selected range.",
     "apiHint": "API key is stored only in this browser.",
     "response": "LLM Response",
     "empty": "Run analysis and select a recommendation to enable LLM.",

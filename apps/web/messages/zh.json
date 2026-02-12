@@ -84,7 +84,7 @@
     "copyResponse": "复制结果",
     "copied": "已复制",
     "prompt": "提示词",
-    "promptHint": "复制后粘贴到 ChatGPT 或其他应用。",
+    "promptHint": "使用方法：1）点击“复制提示词”。2）打开 ChatGPT 或其他 LLM 应用。3）粘贴后发送。模型会给出所选区间的分析与建议。",
     "apiHint": "API Key 仅保存在本地浏览器。",
     "response": "LLM 输出",
     "empty": "请先分析并选择一个推荐范围。",
