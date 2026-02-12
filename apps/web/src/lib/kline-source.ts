@@ -30,10 +30,10 @@ export interface KlineResult {
 }
 
 /**
- * Unified kline fetcher with Birdeye → Binance fallback chain.
+ * Unified kline fetcher with Binance → Birdeye fallback chain.
  *
- * 1. Birdeye (if BIRDEYE_API_KEY is configured) — uses coin_type_a address for USD price
- * 2. Binance (via deriveBinanceSymbol) — standard CEX klines
+ * 1. Binance (via deriveBinanceSymbol) — standard CEX klines, free & fast
+ * 2. Birdeye (if BIRDEYE_API_KEY is configured) — fallback for non-Binance pairs
  * 3. Throws if both fail
  */
 export async function fetchKlinesForPool(
@@ -85,33 +85,7 @@ export async function fetchKlinesForPool(
     return { klines: merged, quoteUsdEntry };
   };
 
-  // 1. Try Birdeye
-  if (env.BIRDEYE_API_KEY?.trim()) {
-    try {
-      if (quoteIsStable) {
-        const address = toBirdeyeAddress(selection.baseCoinType);
-        const klines = await fetchBirdeyeKlines(address, interval, startMs, endMs);
-        return { klines, source: "birdeye", base, quote };
-      }
-      const baseAddr = toBirdeyeAddress(selection.baseCoinType);
-      const quoteAddr = toBirdeyeAddress(selection.quoteCoinType);
-      const [baseKlines, quoteKlines] = await Promise.all([
-        fetchBirdeyeKlines(baseAddr, interval, startMs, endMs),
-        fetchBirdeyeKlines(quoteAddr, interval, startMs, endMs),
-      ]);
-      const { klines, quoteUsdEntry } = buildRatioKlines(baseKlines, quoteKlines);
-      if (klines.length === 0) {
-        throw new Error("Birdeye ratio returned empty data");
-      }
-      return { klines, source: "birdeye", base, quote, quoteUsdEntry };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Birdeye: ${msg}`);
-      console.warn("[kline-source] Birdeye failed, falling back to Binance:", msg);
-    }
-  }
-
-  // 2. Try Binance
+  // 1. Try Binance (free, fast, no API key needed)
   try {
     if (quoteIsStable) {
       const directSymbol = deriveBinanceSymbolForPair(
@@ -153,7 +127,33 @@ export async function fetchKlinesForPool(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     errors.push(`Binance: ${msg}`);
-    console.warn("[kline-source] Binance failed:", msg);
+    console.warn("[kline-source] Binance failed, falling back to Birdeye:", msg);
+  }
+
+  // 2. Try Birdeye (fallback for non-Binance pairs)
+  if (env.BIRDEYE_API_KEY?.trim()) {
+    try {
+      if (quoteIsStable) {
+        const address = toBirdeyeAddress(selection.baseCoinType);
+        const klines = await fetchBirdeyeKlines(address, interval, startMs, endMs);
+        return { klines, source: "birdeye", base, quote };
+      }
+      const baseAddr = toBirdeyeAddress(selection.baseCoinType);
+      const quoteAddr = toBirdeyeAddress(selection.quoteCoinType);
+      const [baseKlines, quoteKlines] = await Promise.all([
+        fetchBirdeyeKlines(baseAddr, interval, startMs, endMs),
+        fetchBirdeyeKlines(quoteAddr, interval, startMs, endMs),
+      ]);
+      const { klines, quoteUsdEntry } = buildRatioKlines(baseKlines, quoteKlines);
+      if (klines.length === 0) {
+        throw new Error("Birdeye ratio returned empty data");
+      }
+      return { klines, source: "birdeye", base, quote, quoteUsdEntry };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`Birdeye: ${msg}`);
+      console.warn("[kline-source] Birdeye failed:", msg);
+    }
   }
 
   throw new Error(
