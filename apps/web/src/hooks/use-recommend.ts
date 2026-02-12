@@ -18,9 +18,8 @@ export function useRecommend() {
         pool_id: form.poolId,
         days: form.days,
         interval: "1h",
-        profile: form.profile,
         capital: form.capital,
-        strategies: form.strategies,
+        horizon_days: form.horizonDays,
       });
 
       try {
@@ -31,9 +30,8 @@ export function useRecommend() {
             pool_id: form.poolId,
             days: form.days,
             interval: "1h",
-            profile: form.profile,
             capital: form.capital,
-            strategies: form.strategies,
+            horizon_days: form.horizonDays,
           }),
         });
 
@@ -44,7 +42,7 @@ export function useRecommend() {
 
         const data = await res.json();
         setData(data);
-        setSelectedKey("top1");
+        setSelectedKey("balanced");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {

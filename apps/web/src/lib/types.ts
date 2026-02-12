@@ -23,9 +23,8 @@ export interface RecommendRequest {
   pool_id: string;
   days: number;
   interval: string;
-  profile: "conservative" | "balanced" | "aggressive";
   capital: number;
-  strategies: string[];
+  horizon_days: number;
 }
 
 export interface PoolSummary {
@@ -61,25 +60,39 @@ export interface BacktestMetrics {
   capital_efficiency: number;
 }
 
+export interface VolatilityInfo {
+  sigma_annual: number;
+  sigma_realized: number;
+  sigma_atr: number;
+  sigma_ewma: number;
+  regime: "low" | "normal" | "high";
+  regime_multiplier: number;
+  sigma_T: number;
+}
+
 export interface InsightData {
-  width_class: "tight" | "moderate" | "wide";
+  range_type: string;
+  k_sigma: number;
+  estimated_prob: number;
   width_pct: number;
-  in_range_pct: number;
+  backtest_in_range_pct: number;
   lp_vs_hodl_pct: number;
   lp_outperforms: boolean;
-  lp_underperforms_significant: boolean;
   max_il_pct: number;
   il_warning: boolean;
+  capital_efficiency: number;
 }
 
 export interface CandidateResult {
-  strategy: string;
+  range_type: "balanced" | "narrow" | "backtest";
+  label: string;
   pa: number;
   pb: number;
   tick_lower: number;
   tick_upper: number;
   width_pct: number;
-  requested_width_pct?: number | null;
+  k_sigma: number;
+  estimated_prob: number;
   metrics: BacktestMetrics;
   score: number;
   insight: string;
@@ -104,9 +117,11 @@ export interface ChartSeries {
 }
 
 export interface RecommendResponse {
-  top3: CandidateResult[];
-  extreme_2pct: CandidateResult;
-  extreme_5pct: CandidateResult;
+  balanced: CandidateResult;
+  narrow: CandidateResult;
+  best_backtest: CandidateResult;
+  volatility: VolatilityInfo;
+  horizon_days: number;
   series: Record<string, ChartSeries>;
   current_price: number;
   pool_fee_rate: number;

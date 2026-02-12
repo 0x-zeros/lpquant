@@ -6,9 +6,8 @@ class RecommendRequest(BaseModel):
     current_price: float
     tick_spacing: int
     fee_rate: float  # e.g. 0.0025
-    profile: str  # "conservative" | "balanced" | "aggressive"
     capital_usd: float
-    strategies: list[str]  # subset of ["quantile", "volband", "swing"]
+    horizon_days: float = 7.0
 
 
 class BacktestMetrics(BaseModel):
@@ -21,14 +20,26 @@ class BacktestMetrics(BaseModel):
     capital_efficiency: float
 
 
+class VolatilityInfo(BaseModel):
+    sigma_annual: float
+    sigma_realized: float
+    sigma_atr: float
+    sigma_ewma: float
+    regime: str  # "low" | "normal" | "high"
+    regime_multiplier: float
+    sigma_T: float
+
+
 class CandidateResult(BaseModel):
-    strategy: str
+    range_type: str  # "balanced" | "narrow" | "backtest"
+    label: str
     pa: float  # lower price
     pb: float  # upper price
     tick_lower: int
     tick_upper: int
     width_pct: float
-    requested_width_pct: float | None = None
+    k_sigma: float
+    estimated_prob: float
     metrics: BacktestMetrics
     score: float
     insight: str
@@ -53,9 +64,11 @@ class ChartSeries(BaseModel):
 
 
 class RecommendResponse(BaseModel):
-    top3: list[CandidateResult]
-    extreme_2pct: CandidateResult
-    extreme_5pct: CandidateResult
-    series: dict[str, ChartSeries]  # keyed by "top1", "top2", "top3", "extreme_2pct", "extreme_5pct"
+    balanced: CandidateResult
+    narrow: CandidateResult
+    best_backtest: CandidateResult
+    volatility: VolatilityInfo
+    horizon_days: float
+    series: dict[str, ChartSeries]  # keyed by "balanced", "narrow", "best_backtest"
     current_price: float
     pool_fee_rate: float

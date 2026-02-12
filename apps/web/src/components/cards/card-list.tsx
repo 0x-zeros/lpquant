@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRecommendContext } from "@/context/recommend-context";
-import { RecommendationCard } from "./recommendation-card";
-import { ExtremeCard } from "./extreme-card";
+import { VolatilitySummary } from "./volatility-summary";
+import { BalancedCard } from "./balanced-card";
+import { NarrowCard } from "./narrow-card";
+import { BacktestCard } from "./backtest-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import { InfoTip } from "@/components/ui/info-tip";
 import { Badge } from "@/components/ui/badge";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LlmPanel } from "@/components/detail/llm-panel";
 import { DetailModal } from "@/components/detail/detail-modal";
@@ -70,67 +71,55 @@ export function CardList() {
       <Tabs defaultValue="recommend">
         <TabsList className="w-full">
           <TabsTrigger value="recommend" className="flex-1">
-            {t("topTitle")}
+            {t("recommendTab")}
           </TabsTrigger>
           <TabsTrigger value="ai" className="flex-1">
             {t("aiTab")}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="recommend" className="mt-4 space-y-4">
-          <h2 className="text-lg font-semibold text-[#00d2ff] flex items-center gap-1.5">
-            {t("topTitle")}
-            <InfoTip content={tt("topRecommendations")} />
-            {data.kline_source && (
-              <span className="ml-auto flex items-center gap-1">
-                <Badge variant="outline" className="text-xs font-normal">
-                  {klineSourceLabel}
-                </Badge>
-                <InfoTip content={tt("klineSourceTip")} />
-              </span>
-            )}
-          </h2>
-          {data.top3.map((c, i) => {
-            const key = `top${i + 1}`;
-            return (
-              <RecommendationCard
-                key={key}
-                candidate={c}
-                rank={i + 1}
-                selected={selectedKey === key}
-                currentPrice={data.current_price}
-                quoteSymbol={quoteSymbol}
-                quoteIsStable={quoteIsStable}
-                onClick={() => setSelectedKey(key)}
-                onDoubleClick={() => openDetail(key)}
-              />
-            );
-          })}
+          {data.kline_source && (
+            <div className="flex items-center gap-1 justify-end">
+              <Badge variant="outline" className="text-xs font-normal">
+                {klineSourceLabel}
+              </Badge>
+              <InfoTip content={tt("klineSourceTip")} />
+            </div>
+          )}
 
-          <Separator />
-          <h2 className="text-lg font-semibold text-amber-400 flex items-center gap-1.5">
-            {t("extremeTitle")}
-            <InfoTip content={tt("extremeRanges")} />
-          </h2>
-
-          <ExtremeCard
-            candidate={data.extreme_2pct}
-            label={t("range2")}
-            selected={selectedKey === "extreme_2pct"}
-            currentPrice={data.current_price}
-            quoteSymbol={quoteSymbol}
-            quoteIsStable={quoteIsStable}
-            onClick={() => setSelectedKey("extreme_2pct")}
-            onDoubleClick={() => openDetail("extreme_2pct")}
+          <VolatilitySummary
+            volatility={data.volatility}
+            horizonDays={data.horizon_days}
           />
-          <ExtremeCard
-            candidate={data.extreme_5pct}
-            label={t("range5")}
-            selected={selectedKey === "extreme_5pct"}
+
+          <BalancedCard
+            candidate={data.balanced}
+            selected={selectedKey === "balanced"}
             currentPrice={data.current_price}
             quoteSymbol={quoteSymbol}
             quoteIsStable={quoteIsStable}
-            onClick={() => setSelectedKey("extreme_5pct")}
-            onDoubleClick={() => openDetail("extreme_5pct")}
+            onClick={() => setSelectedKey("balanced")}
+            onDoubleClick={() => openDetail("balanced")}
+          />
+
+          <NarrowCard
+            candidate={data.narrow}
+            selected={selectedKey === "narrow"}
+            currentPrice={data.current_price}
+            quoteSymbol={quoteSymbol}
+            quoteIsStable={quoteIsStable}
+            onClick={() => setSelectedKey("narrow")}
+            onDoubleClick={() => openDetail("narrow")}
+          />
+
+          <BacktestCard
+            candidate={data.best_backtest}
+            selected={selectedKey === "best_backtest"}
+            currentPrice={data.current_price}
+            quoteSymbol={quoteSymbol}
+            quoteIsStable={quoteIsStable}
+            onClick={() => setSelectedKey("best_backtest")}
+            onDoubleClick={() => openDetail("best_backtest")}
           />
         </TabsContent>
         <TabsContent value="ai" className="mt-4">

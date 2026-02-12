@@ -12,9 +12,8 @@ export async function POST(request: Request) {
       pool_id: poolId,
       days = 30,
       interval = DEFAULT_INTERVAL,
-      profile = "balanced",
       capital = 10000,
-      strategies = ["quantile", "volband", "swing"],
+      horizon_days = 7,
     } = body;
 
     if (!poolId) {
@@ -65,9 +64,8 @@ export async function POST(request: Request) {
       current_price: currentPrice,
       tick_spacing: poolConfig.tickSpacing,
       fee_rate: poolConfig.feeRate,
-      profile,
       capital_usd: capitalForEngine,
-      strategies,
+      horizon_days,
     });
 
     const coinSymbolA = poolSummary.coin_type_a

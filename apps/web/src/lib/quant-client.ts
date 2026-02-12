@@ -6,9 +6,8 @@ interface QuantPayload {
   current_price: number;
   tick_spacing: number;
   fee_rate: number;
-  profile: string;
   capital_usd: number;
-  strategies: string[];
+  horizon_days: number;
 }
 
 export async function callRecommend(

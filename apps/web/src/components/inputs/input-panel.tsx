@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PairSelector } from "./pair-selector";
 import { WindowSelector } from "./window-selector";
-import { ProfileSelector } from "./profile-selector";
-import { StrategyToggles } from "./strategy-toggles";
+import { HorizonSelector } from "./horizon-selector";
 import { CapitalInput } from "./capital-input";
 import { PoolLimitInput } from "./pool-limit-input";
 import { PoolSortSelector } from "./pool-sort-selector";
@@ -16,7 +15,7 @@ import { useRecommend } from "@/hooks/use-recommend";
 
 export function InputPanel() {
   const t = useTranslations("input");
-  const { form, updateField, toggleStrategy } = useFormState();
+  const { form, updateField } = useFormState();
   const { analyze, loading } = useRecommend();
 
   return (
@@ -45,15 +44,11 @@ export function InputPanel() {
           value={form.days}
           onChange={(v) => updateField("days", v)}
         />
+        <HorizonSelector
+          value={form.horizonDays}
+          onChange={(v) => updateField("horizonDays", v)}
+        />
         <Separator />
-        <ProfileSelector
-          value={form.profile}
-          onChange={(v) => updateField("profile", v)}
-        />
-        <StrategyToggles
-          selected={form.strategies}
-          onToggle={toggleStrategy}
-        />
         <CapitalInput
           value={form.capital}
           onChange={(v) => updateField("capital", v)}
@@ -63,7 +58,7 @@ export function InputPanel() {
           className="w-full font-semibold"
           size="lg"
           onClick={() => analyze(form)}
-          disabled={loading || form.strategies.length === 0 || !form.poolId}
+          disabled={loading || !form.poolId}
         >
           {loading ? t("analyzing") : t("analyze")}
         </Button>

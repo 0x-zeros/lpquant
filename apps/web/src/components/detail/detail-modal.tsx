@@ -4,8 +4,9 @@ import { useEffect, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { useRecommendContext } from "@/context/recommend-context";
-import { RecommendationCard } from "@/components/cards/recommendation-card";
-import { ExtremeCard } from "@/components/cards/extreme-card";
+import { BalancedCard } from "@/components/cards/balanced-card";
+import { NarrowCard } from "@/components/cards/narrow-card";
+import { BacktestCard } from "@/components/cards/backtest-card";
 import { DetailPanel } from "./detail-panel";
 
 interface DetailModalProps {
@@ -16,7 +17,6 @@ interface DetailModalProps {
 
 export function DetailModal({ open, selectedKey, onClose }: DetailModalProps) {
   const t = useTranslations("detail");
-  const tc = useTranslations("cards");
   const { data } = useRecommendContext();
 
   useEffect(() => {
@@ -34,27 +34,10 @@ export function DetailModal({ open, selectedKey, onClose }: DetailModalProps) {
   const quoteIsStable = data.quote_is_stable;
 
   let card: ReactNode = null;
-  if (selectedKey.startsWith("top")) {
-    const idx = Math.max(0, parseInt(selectedKey.replace("top", ""), 10) - 1);
-    const candidate = data.top3[idx];
-    if (candidate) {
-      card = (
-        <RecommendationCard
-          candidate={candidate}
-          rank={idx + 1}
-          selected
-          currentPrice={data.current_price}
-          quoteSymbol={quoteSymbol}
-          quoteIsStable={quoteIsStable}
-          onClick={() => {}}
-        />
-      );
-    }
-  } else if (selectedKey === "extreme_2pct") {
+  if (selectedKey === "balanced") {
     card = (
-      <ExtremeCard
-        candidate={data.extreme_2pct}
-        label={tc("range2")}
+      <BalancedCard
+        candidate={data.balanced}
         selected
         currentPrice={data.current_price}
         quoteSymbol={quoteSymbol}
@@ -62,11 +45,21 @@ export function DetailModal({ open, selectedKey, onClose }: DetailModalProps) {
         onClick={() => {}}
       />
     );
-  } else if (selectedKey === "extreme_5pct") {
+  } else if (selectedKey === "narrow") {
     card = (
-      <ExtremeCard
-        candidate={data.extreme_5pct}
-        label={tc("range5")}
+      <NarrowCard
+        candidate={data.narrow}
+        selected
+        currentPrice={data.current_price}
+        quoteSymbol={quoteSymbol}
+        quoteIsStable={quoteIsStable}
+        onClick={() => {}}
+      />
+    );
+  } else if (selectedKey === "best_backtest") {
+    card = (
+      <BacktestCard
+        candidate={data.best_backtest}
         selected
         currentPrice={data.current_price}
         quoteSymbol={quoteSymbol}

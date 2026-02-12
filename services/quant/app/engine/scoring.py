@@ -1,173 +1,123 @@
-"""Profile-weighted scoring and insight generation for LP range candidates."""
+"""Fixed probability-based scoring and selection for LP range candidates."""
 
 from __future__ import annotations
 
 from app.schemas import BacktestMetrics
 
 
-# ---------------------------------------------------------------------------
-# Profile weight definitions
-# ---------------------------------------------------------------------------
-# Each weight dict maps metric names to (weight, inverted) pairs.
-# ``inverted=True`` means *lower is better* (e.g. max_il_pct).
-
-PROFILES: dict[str, dict[str, tuple[float, bool]]] = {
-    "conservative": {
-        "in_range_pct": (0.40, False),
-        "max_il_pct": (0.30, True),
-        "max_drawdown_pct": (0.20, True),
-        "lp_vs_hodl_pct": (0.10, False),
-    },
-    "balanced": {
-        "in_range_pct": (0.25, False),
-        "lp_vs_hodl_pct": (0.25, False),
-        "max_il_pct": (0.20, True),
-        "max_drawdown_pct": (0.15, True),
-        "touch_count": (0.15, True),
-    },
-    "aggressive": {
-        "lp_vs_hodl_pct": (0.40, False),
-        "capital_efficiency": (0.25, False),
-        "max_il_pct": (0.15, True),
-        "max_drawdown_pct": (0.10, True),
-        "touch_count": (0.10, True),
-    },
-}
+def _efficiency_score(metrics: BacktestMetrics) -> float:
+    """Capital efficiency score normalized to [0, 1]."""
+    eff = metrics.capital_efficiency
+    # cap_eff is sqrt(pb/pa), typical range 1-100+
+    # Normalize: log scale, cap at ~50x
+    if eff <= 1:
+        return 0.0
+    import math
+    return min(math.log(eff) / math.log(50), 1.0)
 
 
-def _extract_metric(metrics: BacktestMetrics, name: str) -> float:
-    """Safely extract a metric value by name."""
-    return float(getattr(metrics, name))
-
-
-def _normalize(values: list[float]) -> list[float]:
-    """Min-max normalize a list of values to [0, 100]."""
-    if not values:
-        return []
-    lo = min(values)
-    hi = max(values)
-    span = hi - lo
-    if span == 0:
-        return [50.0] * len(values)
-    return [(v - lo) / span * 100.0 for v in values]
-
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
-def score_candidates(
+def score_and_select(
     candidates: list[dict],
-    profile: str,
-) -> list[dict]:
-    """Score and sort *candidates* according to *profile* weights.
+) -> tuple[dict | None, dict | None, dict | None]:
+    """Score candidates and select best balanced, best narrow, and best backtest.
 
-    Each element of *candidates* must contain a ``"metrics"`` key holding a
-    :class:`BacktestMetrics` instance.  The function adds a ``"score"`` key
-    (float in [0, 100]) and an ``"insight"`` key (str) to each candidate
-    dict, then returns the list sorted by score descending.
+    Scoring formula for balanced/narrow:
+        0.50 × estimated_prob + 0.30 × backtest_in_range + 0.20 × efficiency_score
+
+    Best backtest: highest lp_vs_hodl_pct across all candidates.
+
+    Returns (best_balanced, best_narrow, best_backtest).
     """
-    weights = PROFILES.get(profile, PROFILES["balanced"])
-
     if not candidates:
-        return candidates
+        return (None, None, None)
 
-    # Gather raw metric vectors for normalization
-    metric_names = list(weights.keys())
-    raw: dict[str, list[float]] = {m: [] for m in metric_names}
+    # Score all candidates
     for cand in candidates:
         metrics: BacktestMetrics = cand["metrics"]
-        for m in metric_names:
-            raw[m].append(_extract_metric(metrics, m))
+        est_prob = cand.get("estimated_prob", 0.0)
+        in_range_norm = metrics.in_range_pct / 100.0
+        eff = _efficiency_score(metrics)
 
-    # Normalize each metric
-    normed: dict[str, list[float]] = {}
-    for m in metric_names:
-        normed[m] = _normalize(raw[m])
-
-    # Compute composite score per candidate
-    for idx, cand in enumerate(candidates):
-        total = 0.0
-        for m, (w, inverted) in weights.items():
-            value = normed[m][idx]
-            if inverted:
-                value = 100.0 - value
-            total += w * value
-        cand["score"] = round(total, 2)
+        score = 0.50 * est_prob + 0.30 * in_range_norm + 0.20 * eff
+        cand["score"] = round(score * 100, 2)  # scale to 0-100
 
     # Generate insights
     for cand in candidates:
         cand["insight"] = _generate_insight(cand)
         cand["insight_data"] = _generate_insight_data(cand)
 
-    # Sort descending by score
-    candidates.sort(key=lambda c: c["score"], reverse=True)
-    return candidates
+    # Select best balanced
+    balanced = [c for c in candidates if c.get("range_type") == "balanced"]
+    best_balanced = max(balanced, key=lambda c: c["score"]) if balanced else None
 
+    # Select best narrow
+    narrow = [c for c in candidates if c.get("range_type") == "narrow"]
+    best_narrow = max(narrow, key=lambda c: c["score"]) if narrow else None
 
-# ---------------------------------------------------------------------------
-# Insight generation
-# ---------------------------------------------------------------------------
+    # Select best backtest (highest lp_vs_hodl_pct across all)
+    best_backtest = max(
+        candidates,
+        key=lambda c: c["metrics"].lp_vs_hodl_pct,
+    )
+
+    return (best_balanced, best_narrow, best_backtest)
+
 
 def _generate_insight(cand: dict) -> str:
-    """Return a human-readable one-liner describing the candidate's trade-off."""
+    """Return a human-readable one-liner for the candidate."""
     metrics: BacktestMetrics = cand["metrics"]
     width_pct: float = cand.get("width_pct", 0.0)
-    in_range = metrics.in_range_pct
-    il = metrics.max_il_pct
-    lp_vs_hodl = metrics.lp_vs_hodl_pct
+    est_prob: float = cand.get("estimated_prob", 0.0)
+    range_type: str = cand.get("range_type", "")
+    k: float = cand.get("k_sigma", 0.0)
 
     parts: list[str] = []
 
-    # Width characterisation
-    if width_pct < 3:
+    if range_type == "balanced":
         parts.append(
-            f"Tight range ({width_pct:.1f}% width) with {in_range:.0f}% in-range time "
-            f"-- high capital efficiency but watch for IL"
+            f"{k:.1f}σ range ({width_pct:.1f}% width) with "
+            f"{est_prob * 100:.0f}% estimated stay probability"
         )
-    elif width_pct < 10:
+    elif range_type == "narrow":
         parts.append(
-            f"Moderate range ({width_pct:.1f}% width) capturing {in_range:.0f}% of "
-            f"price action"
+            f"Tight {k:.1f}σ range ({width_pct:.1f}% width) — "
+            f"{est_prob * 100:.0f}% stay probability, high efficiency"
         )
     else:
         parts.append(
-            f"Wide range ({width_pct:.1f}% width) captures {in_range:.0f}% of price "
-            f"action -- lower IL risk at cost of efficiency"
+            f"Range ({width_pct:.1f}% width) with {metrics.in_range_pct:.0f}% "
+            f"historical in-range time"
         )
 
-    # LP vs HODL hint
+    lp_vs_hodl = metrics.lp_vs_hodl_pct
     if lp_vs_hodl > 0:
         parts.append(f"LP outperforms HODL by {lp_vs_hodl:.1f}%")
     elif lp_vs_hodl < -5:
         parts.append(f"LP underperforms HODL by {abs(lp_vs_hodl):.1f}%")
 
-    # IL warning
-    if il > 10:
-        parts.append(f"max IL reached {il:.1f}% -- consider tighter rebalance")
+    if metrics.max_il_pct > 10:
+        parts.append(f"max IL reached {metrics.max_il_pct:.1f}%")
 
     return ". ".join(parts) + "."
 
 
 def _generate_insight_data(cand: dict) -> dict:
-    """Return structured insight data for client-side i18n rendering."""
+    """Return structured insight data for client-side rendering."""
     metrics: BacktestMetrics = cand["metrics"]
     width_pct: float = cand.get("width_pct", 0.0)
-
-    if width_pct < 3:
-        width_class = "tight"
-    elif width_pct < 10:
-        width_class = "moderate"
-    else:
-        width_class = "wide"
+    est_prob: float = cand.get("estimated_prob", 0.0)
+    k: float = cand.get("k_sigma", 0.0)
+    range_type: str = cand.get("range_type", "")
 
     return {
-        "width_class": width_class,
+        "range_type": range_type,
+        "k_sigma": round(k, 2),
+        "estimated_prob": round(est_prob, 4),
         "width_pct": round(width_pct, 1),
-        "in_range_pct": round(metrics.in_range_pct, 0),
+        "backtest_in_range_pct": round(metrics.in_range_pct, 1),
         "lp_vs_hodl_pct": round(metrics.lp_vs_hodl_pct, 1),
         "lp_outperforms": metrics.lp_vs_hodl_pct > 0,
-        "lp_underperforms_significant": metrics.lp_vs_hodl_pct < -5,
         "max_il_pct": round(metrics.max_il_pct, 1),
         "il_warning": metrics.max_il_pct > 10,
+        "capital_efficiency": round(metrics.capital_efficiency, 1),
     }
