@@ -72,21 +72,28 @@ uv sync && uv run uvicorn app.main:app --reload --port 8000
 # 两个服务需同时运行
 ```
 
-## 环境变量
+## AI 使用披露（强制）
 
-| 变量 | 必需 | 说明 |
-|------|------|------|
-| `BIRDEYE_API_KEY` | 否 | Birdeye API Key（主 kline 源） |
-| `QUANT_SERVICE_URL` | 否 | Python 引擎地址（默认 `http://localhost:8000`） |
-| `SUI_RPC_URL` | 否 | Sui 全节点 RPC（默认主网） |
+本项目在方案设计、实现、调试、重构和文档编写阶段使用了 AI 工具。
 
-## 黑客松
+### 1）使用的 AI 工具
 
-**Sui Vibe Hackathon — Build on Sui · Build the Vibe**  
-Organizer: HOH × Sui  
-Sponsors: Cetus, Bucket  
+- ChatGPT
+- Claude Code
+- Codex
 
-本项目参加 **Cetus 赛道**，目标是打造真正可用、可落地的 Sui CLMM LP 决策工具。
+### 2）模型名称 / 版本
+
+- ChatGPT 会话模型：ChatGPT 5.2 Thinking（用于初始提示词草拟）
+- Claude Code 会话模型：Claude Opus 4.6
+- Codex 会话模型：GPT-5.3（`high`、`xhigh`）
+
+### 3）提供给 AI 的提示词（Exact Prompts）
+
+- 仓库内提示词文件路径：`prompts/`
+- 项目基线提示词为 `prompts/` 目录下的文件（含已提交的版本迭代）
+- 另有一部分迭代式提示词来自 Claude Code 与 Codex 的交互式开发会话（实现、评审、调试、文档更新等阶段）
+- 脱敏策略：提示词不包含密钥/API Key，必要时会对敏感细节做脱敏处理
 
 ## 后续计划
 

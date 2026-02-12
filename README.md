@@ -74,22 +74,28 @@ uv sync && uv run uvicorn app.main:app --reload --port 8000
 # Both services must run simultaneously
 ```
 
-## Environment Variables
+## AI Usage Disclosure (Mandatory)
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `BIRDEYE_API_KEY` | No | Birdeye API key for primary kline source |
-| `QUANT_SERVICE_URL` | No | Python engine URL (default: `http://localhost:8000`) |
-| `SUI_RPC_URL` | No | Sui fullnode RPC (default: mainnet) |
+AI tools were used in planning, implementation, debugging, refactoring, and documentation for this project.
 
-## Hackathon
+### 1) AI tool names used
 
-**Sui Vibe Hackathon — Build on Sui · Build the Vibe**  
-Organizer: HOH × Sui  
-Sponsors: Cetus, Bucket  
+- ChatGPT
+- Claude Code
+- Codex
 
-This project was created for the **Cetus track**, with a focus on production‑ready
-LP decision tooling for Sui CLMM pools.
+### 2) Model names / versions
+
+- ChatGPT session model: ChatGPT 5.2 Thinking (used for initial prompt drafting)
+- Claude Code session model: Claude Opus 4.6
+- Codex session models: GPT-5.3 (`high`, `xhigh`)
+
+### 3) Exact prompts given to AI
+
+- Prompt files in this repository are stored under: `prompts/`
+- Baseline project prompts are the files under `prompts/` (including committed revisions)
+- Additional iterative prompts were provided through interactive Claude Code and Codex sessions during implementation, review, debugging, and documentation updates
+- Redaction policy: secrets and API keys are excluded from prompts; sensitive details may be redacted when needed
 
 ## Future Work
 
