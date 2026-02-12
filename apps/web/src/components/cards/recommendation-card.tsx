@@ -24,6 +24,7 @@ interface RecommendationCardProps {
   onClick: () => void;
   quoteSymbol?: string;
   quoteIsStable?: boolean;
+  onDoubleClick?: () => void;
 }
 
 function metricVariant(value: number, goodThreshold: number, badThreshold: number, inverted = false) {
@@ -52,6 +53,7 @@ export function RecommendationCard({
   onClick,
   quoteSymbol,
   quoteIsStable,
+  onDoubleClick,
 }: RecommendationCardProps) {
   const tc = useTranslations("cards");
   const tm = useTranslations("metrics");
@@ -71,6 +73,7 @@ export function RecommendationCard({
         selected && "ring-2 ring-[#00d2ff] shadow-lg shadow-[#00d2ff]/10",
       )}
       onClick={onClick}
+      onDoubleClick={onDoubleClick}
     >
       <CardHeader className="flex flex-row items-center gap-2 pb-2">
         <Badge className="h-6 w-6 items-center justify-center rounded-full bg-[#00d2ff] p-0 text-[#0d0e21]">

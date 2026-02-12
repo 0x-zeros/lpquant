@@ -24,6 +24,7 @@ interface ExtremeCardProps {
   onClick: () => void;
   quoteSymbol?: string;
   quoteIsStable?: boolean;
+  onDoubleClick?: () => void;
 }
 
 function formatDuration(hours: number) {
@@ -58,6 +59,7 @@ export function ExtremeCard({
   onClick,
   quoteSymbol,
   quoteIsStable,
+  onDoubleClick,
 }: ExtremeCardProps) {
   const tc = useTranslations("cards");
   const tm = useTranslations("metrics");
@@ -79,6 +81,7 @@ export function ExtremeCard({
         selected && "ring-2 ring-amber-500",
       )}
       onClick={onClick}
+      onDoubleClick={onDoubleClick}
     >
       <CardHeader className="flex flex-row items-center gap-2 pb-2">
         <Badge variant="outline" className="border-amber-500 text-amber-600">

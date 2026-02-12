@@ -27,6 +27,7 @@
   },
   "cards": {
     "topTitle": "Top Recommendations",
+    "aiTab": "AI Analysis",
     "extremeTitle": "Extreme Ranges",
     "range2": "2% Range",
     "range5": "5% Range",

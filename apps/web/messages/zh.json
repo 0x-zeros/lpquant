@@ -27,6 +27,7 @@
   },
   "cards": {
     "topTitle": "最佳推荐",
+    "aiTab": "AI 分析",
     "extremeTitle": "极端范围",
     "range2": "2% 范围",
     "range5": "5% 范围",
