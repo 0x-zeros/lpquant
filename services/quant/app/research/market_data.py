@@ -14,13 +14,13 @@ KNOWN_QUOTES = ("USDC", "USDT", "FDUSD", "BUSD", "BTC", "ETH", "SOL", "SUI")
 
 
 class MarketDataUnavailable(RuntimeError):
-    """Raised when a requested pair cannot be resolved from the configured data sources."""
+    """当请求的交易对无法从已配置数据源解析时抛出。"""
 
 
 def parse_pair(raw_pair: str) -> PairSpec:
     cleaned = raw_pair.strip().upper().replace(" ", "")
     if not cleaned:
-        raise ValueError("pair is required")
+        raise ValueError("必须提供交易对")
 
     for delimiter in ("/", "-", "_", ":"):
         if delimiter in cleaned:
@@ -36,7 +36,7 @@ def parse_pair(raw_pair: str) -> PairSpec:
                 return PairSpec(base=base, quote=quote)
 
     raise ValueError(
-        "could not parse pair; use formats like BTC/USDC, SUI-USDC, or BTCUSDC"
+        "无法解析交易对，请使用 BTC/USDC、SUI-USDC 或 BTCUSDC 这类格式"
     )
 
 
@@ -63,7 +63,7 @@ def fetch_binance_klines(
             )
             if response.status_code != 200:
                 raise MarketDataUnavailable(
-                    f"Binance rejected {symbol} {interval}: {response.status_code} {response.text}"
+                    f"Binance 拒绝了 {symbol} {interval} 请求：{response.status_code} {response.text}"
                 )
 
             payload = response.json()
@@ -88,7 +88,7 @@ def fetch_binance_klines(
             current_start = last_open_time + 1
 
     if not all_rows:
-        raise MarketDataUnavailable(f"Binance returned no rows for {symbol}")
+        raise MarketDataUnavailable(f"Binance 没有返回 {symbol} 的任何数据")
 
     frame = pd.DataFrame.from_records(all_rows)
     frame = (
@@ -110,12 +110,12 @@ def _build_ratio_frame(
         how="inner",
     )
     if merged.empty:
-        raise MarketDataUnavailable("ratio construction produced an empty merged frame")
+        raise MarketDataUnavailable("比价构造后的合并结果为空")
 
     for column in ("open", "high", "low", "close"):
         quote_col = f"{column}_quote"
         if (merged[quote_col] <= 0).any():
-            raise MarketDataUnavailable("ratio construction encountered non-positive quote prices")
+            raise MarketDataUnavailable("比价构造过程中出现了非正数的报价价格")
 
     return pd.DataFrame(
         {
@@ -139,7 +139,7 @@ def _build_dataset(
     min_required = 50
     if len(frame) < min_required:
         raise MarketDataUnavailable(
-            f"only received {len(frame)} rows for {pair.symbol}; need at least {min_required}"
+            f"{pair.symbol} 只拿到了 {len(frame)} 条数据，至少需要 {min_required} 条"
         )
     return PriceDataset(pair=pair, interval=interval, source=source, frame=frame, notes=notes)
 
@@ -162,7 +162,7 @@ def load_price_history(
         direct_frame = fetch_binance_klines(direct_symbol, interval, start_ms, end_ms)
         return _build_dataset(pair, interval, "binance-direct", direct_frame, [])
     except MarketDataUnavailable as exc:
-        errors.append(f"direct {direct_symbol}: {exc}")
+        errors.append(f"直连 {direct_symbol}: {exc}")
 
     if pair.quote != "USDT":
         base_usdt = f"{pair.base}USDT"
@@ -172,22 +172,22 @@ def load_price_history(
             quote_frame = fetch_binance_klines(quote_usdt, interval, start_ms, end_ms)
             ratio_frame = _build_ratio_frame(base_frame, quote_frame)
             notes = [
-                f"Binance does not expose {pair.symbol} directly; using the ratio {base_usdt} / {quote_usdt}.",
+                f"Binance 没有直接提供 {pair.symbol}，当前使用 {base_usdt} / {quote_usdt} 的比价结果。",
             ]
             return _build_dataset(pair, interval, "binance-ratio", ratio_frame, notes)
         except MarketDataUnavailable as exc:
-            errors.append(f"ratio {base_usdt}/{quote_usdt}: {exc}")
+            errors.append(f"比价 {base_usdt}/{quote_usdt}: {exc}")
 
     if pair.quote in STABLE_QUOTES and pair.quote != "USDT":
         proxy_symbol = f"{pair.base}USDT"
         try:
             proxy_frame = fetch_binance_klines(proxy_symbol, interval, start_ms, end_ms)
             notes = [
-                f"Neither direct {pair.symbol} nor a stablecoin ratio was available; using {proxy_symbol} as a stablecoin proxy.",
+                f"{pair.symbol} 既没有直连数据，也没有可用的稳定币比价数据，当前使用 {proxy_symbol} 作为稳定币代理。",
             ]
             return _build_dataset(pair, interval, "binance-proxy", proxy_frame, notes)
         except MarketDataUnavailable as exc:
-            errors.append(f"stable proxy {proxy_symbol}: {exc}")
+            errors.append(f"稳定币代理 {proxy_symbol}: {exc}")
 
-    joined_errors = "; ".join(errors) if errors else "no compatible Binance route found"
-    raise MarketDataUnavailable(f"{pair.symbol} is currently unavailable from Binance routes: {joined_errors}")
+    joined_errors = "; ".join(errors) if errors else "没有找到可用的 Binance 路径"
+    raise MarketDataUnavailable(f"{pair.symbol} 当前无法从 Binance 路径获取：{joined_errors}")

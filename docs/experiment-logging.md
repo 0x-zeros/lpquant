@@ -1,29 +1,29 @@
-# Experiment Logging
+# Experiment Logging / 实验日志规范
 
-## Goal
+## 目标
 
-Every serious research run should leave behind a reproducible artifact bundle, not just a screenshot or one CSV copied out of a notebook.
+每一次正式的 research run，都应该留下一个可复现的 artifact bundle，而不只是 notebook 截图或者随手导出的一个 CSV。
 
-The standard output location is:
+标准输出目录建议放在：
 
 `/Users/lilith/dev/web3/lpquant/services/quant/research_runs/<timestamp>_<label>/`
 
-Example:
+例如：
 
 `/Users/lilith/dev/web3/lpquant/services/quant/research_runs/20260403T120000Z_baseline_suite/`
 
-## What to save for every run
+## 每次 run 至少要保存什么
 
-At minimum, every run should capture:
+最少应保存：
 
-- the exact study request or benchmark case matrix
-- current regime snapshot
+- 精确的 study request 或 benchmark case matrix
+- 当前 regime snapshot
 - best-ranked interval
-- full rankings table
+- 完整 rankings table
 - similar historical windows
-- runtime metadata such as git branch and commit
+- runtime metadata，例如 git branch / commit
 
-That is why the research helpers now save:
+因此现在研究工具会默认保存：
 
 - `metadata.json`
 - `summary.csv`
@@ -34,28 +34,32 @@ That is why the research helpers now save:
 - `cases/<case_name>/similar_windows.csv`
 - `cases/<case_name>/feature_tail.csv`
 
-## Naming convention
+## 命名规范
 
-Use timestamped directories with short labels:
+目录名使用 timestamp + 短 label：
 
 - `baseline_suite`
 - `sui_4h_bullish`
 - `btc_1d_defensive_reset_test`
 
-Good labels are short, specific, and reflect the hypothesis being tested.
+一个好的 label 应该是：
 
-## Notebook workflow
+- 短
+- 明确
+- 能反映这次 hypothesis 在测什么
 
-Inside notebooks, prefer this pattern:
+## Notebook 工作流
 
-1. Create a run directory with `create_experiment_dir("research_runs", "baseline_suite")`
-2. Save the full benchmark bundle with `save_benchmark_suite(...)`
-3. Save any single-pair deep-dive with `save_study_artifacts(...)`
-4. Add a short plain-language note describing what changed versus the previous run
+在 notebook 里，推荐固定使用下面的顺序：
 
-## What to compare across runs
+1. 用 `create_experiment_dir("research_runs", "baseline_suite")` 创建新的 run directory
+2. 用 `save_benchmark_suite(...)` 保存完整 benchmark bundle
+3. 用 `save_study_artifacts(...)` 保存 single-pair deep dive
+4. 补一段简短的 plain-language note，说明这次和上一次相比改了什么
 
-The fastest way to tell whether a new idea is actually useful is to compare these fields against the prior run:
+## Run 之间重点比较什么
+
+判断一个新想法是不是真的有用，最快的方法通常是和上一轮对比这些字段：
 
 - `width_pct`
 - `center_offset_pct`
@@ -65,10 +69,11 @@ The fastest way to tell whether a new idea is actually useful is to compare thes
 - `downside_breach_rate`
 - `mean_max_drawdown_pct`
 
-If the new run only improves one metric while making the tail metrics much worse, log that explicitly instead of treating the run as a win.
+如果新 run 只是把某一个指标拉高了，但 tail metrics 明显变差，就应该明确记在日志里，而不是把它当成 win。
 
-## Important discipline
+## 一条很重要的纪律
 
-Do not overwrite old runs.
+不要覆盖旧 run。
 
-If a new hypothesis is worth testing, it is worth logging as a new run directory. The time series of your experiments is itself valuable research data.
+如果一个 hypothesis 值得测，它就值得拥有一个新的 run directory。  
+你的 experiment history 本身就是有价值的 research data。

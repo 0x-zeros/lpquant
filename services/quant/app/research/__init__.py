@@ -1,4 +1,4 @@
-"""Research workspace for concentrated-liquidity interval studies."""
+"""集中流动性区间研究工作区。"""
 
 from app.research.benchmarks import (
     BASELINE_CASES,
@@ -8,6 +8,7 @@ from app.research.benchmarks import (
     save_benchmark_suite,
 )
 from app.research.artifacts import create_experiment_dir, save_study_artifacts
+from app.research.labels import format_metric, format_objective, format_scenario, format_source, format_view, rename_for_display
 from app.research.reporting import (
     build_pair_comparison_table,
     plot_study_candidate_frontier,
@@ -23,9 +24,15 @@ __all__ = [
     "BenchmarkSuiteResult",
     "build_pair_comparison_table",
     "create_experiment_dir",
+    "format_metric",
+    "format_objective",
+    "format_scenario",
+    "format_source",
+    "format_view",
     "plot_study_candidate_frontier",
     "plot_summary_metric_bars",
     "plot_summary_metric_heatmap",
+    "rename_for_display",
     "save_study_artifacts",
     "StudyRequest",
     "StudyResult",

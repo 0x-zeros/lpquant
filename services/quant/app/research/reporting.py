@@ -6,12 +6,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from app.research.labels import format_metric, format_scenario, rename_for_display
+
 
 def annotate_summary(summary: pd.DataFrame) -> pd.DataFrame:
     annotated = summary.copy()
     if annotated.empty:
         return annotated
-    annotated["scenario"] = annotated["view"] + "/" + annotated["objective"]
+    annotated["scenario"] = annotated.apply(
+        lambda row: format_scenario(row["view"], row["objective"]),
+        axis=1,
+    )
     annotated["pair_interval"] = annotated["pair"] + " " + annotated["interval"]
     return annotated
 
@@ -41,7 +46,8 @@ def build_pair_comparison_table(
     selected_metrics = list(metrics) if metrics else default_metrics
     base_columns = ["pair", "interval", "scenario", "regime_label"]
     table = annotated[base_columns + selected_metrics].copy()
-    return table.sort_values(["pair", "interval", "scenario"]).reset_index(drop=True)
+    table = table.sort_values(["pair", "interval", "scenario"]).reset_index(drop=True)
+    return rename_for_display(table)
 
 
 def _metric_pivot(summary: pd.DataFrame, metric: str) -> pd.DataFrame:
@@ -61,14 +67,15 @@ def plot_summary_metric_bars(
 ) -> tuple[plt.Figure, plt.Axes]:
     pivot = _metric_pivot(summary, metric)
     if pivot.empty:
-        raise ValueError("summary is empty; nothing to plot")
+        raise ValueError("summary 为空，没有可绘制的数据")
 
     fig, ax = plt.subplots(figsize=figsize)
     pivot.plot(kind="bar", ax=ax)
-    ax.set_title(title or f"{metric} by pair and scenario")
+    metric_label = format_metric(metric)
+    ax.set_title(title or f"{metric_label}在不同交易对与场景下的对比")
     ax.set_xlabel("")
-    ax.set_ylabel(metric)
-    ax.legend(title="scenario", bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.set_ylabel(metric_label)
+    ax.legend(title="场景", bbox_to_anchor=(1.02, 1), loc="upper left")
     ax.grid(axis="y", alpha=0.25)
     fig.tight_layout()
     return fig, ax
@@ -84,7 +91,7 @@ def plot_summary_metric_heatmap(
 ) -> tuple[plt.Figure, plt.Axes]:
     pivot = _metric_pivot(summary, metric)
     if pivot.empty:
-        raise ValueError("summary is empty; nothing to plot")
+        raise ValueError("summary 为空，没有可绘制的数据")
 
     fig, ax = plt.subplots(figsize=figsize)
     matrix = pivot.to_numpy(dtype=float)
@@ -93,14 +100,15 @@ def plot_summary_metric_heatmap(
     ax.set_xticklabels(pivot.columns, rotation=30, ha="right")
     ax.set_yticks(np.arange(len(pivot.index)))
     ax.set_yticklabels(pivot.index)
-    ax.set_title(title or f"{metric} heatmap")
+    metric_label = format_metric(metric)
+    ax.set_title(title or f"{metric_label}热力图")
 
     for row in range(matrix.shape[0]):
         for col in range(matrix.shape[1]):
             value = matrix[row, col]
             ax.text(col, row, f"{value:.1f}", ha="center", va="center", color="white")
 
-    fig.colorbar(image, ax=ax, shrink=0.85, label=metric)
+    fig.colorbar(image, ax=ax, shrink=0.85, label=metric_label)
     fig.tight_layout()
     return fig, ax
 
@@ -116,7 +124,7 @@ def plot_study_candidate_frontier(
     title: str | None = None,
 ) -> tuple[plt.Figure, plt.Axes]:
     if rankings.empty:
-        raise ValueError("rankings is empty; nothing to plot")
+        raise ValueError("rankings 为空，没有可绘制的数据")
 
     fig, ax = plt.subplots(figsize=figsize)
     scatter = ax.scatter(
@@ -129,16 +137,16 @@ def plot_study_candidate_frontier(
         edgecolors="black",
         linewidths=0.4,
     )
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
-    ax.set_title(title or f"{y} vs {x}")
+    ax.set_xlabel(format_metric(x))
+    ax.set_ylabel(format_metric(y))
+    ax.set_title(title or f"{format_metric(y)} 与 {format_metric(x)} 的关系")
     ax.grid(alpha=0.25)
 
     top_rows = rankings.head(label_top_n)
     for _, row in top_rows.iterrows():
-        label = f"w={row['width_pct']:.1f}%, c={row['center_offset_pct']:.1f}%"
+        label = f"宽={row['width_pct']:.1f}%，偏移={row['center_offset_pct']:.1f}%"
         ax.annotate(label, (row[x], row[y]), xytext=(6, 6), textcoords="offset points")
 
-    fig.colorbar(scatter, ax=ax, shrink=0.85, label=color)
+    fig.colorbar(scatter, ax=ax, shrink=0.85, label=format_metric(color))
     fig.tight_layout()
     return fig, ax

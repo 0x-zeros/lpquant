@@ -18,7 +18,7 @@ FEATURE_COLUMNS = [
 def interval_to_hours(interval: str) -> float:
     token = interval.strip()
     if not token:
-        raise ValueError("interval is required")
+        raise ValueError("必须提供周期参数")
 
     unit = token[-1]
     value = int(token[:-1])
@@ -31,7 +31,7 @@ def interval_to_hours(interval: str) -> float:
     if unit == "w":
         return float(value * 24 * 7)
 
-    raise ValueError(f"unsupported interval {interval!r}; use m/h/d/w intervals")
+    raise ValueError(f"暂不支持周期 {interval!r}，请使用 m/h/d/w 后缀")
 
 
 def bars_per_year(interval: str) -> float:
@@ -45,7 +45,7 @@ def build_feature_frame(
     interval: str,
 ) -> pd.DataFrame:
     if lookback_bars < 5:
-        raise ValueError("lookback_bars must be at least 5")
+        raise ValueError("lookback_bars 至少需要为 5")
 
     feature_frame = frame.copy()
     close = feature_frame["close"].astype(float)
@@ -80,32 +80,32 @@ def build_feature_frame(
 def describe_current_regime(feature_frame: pd.DataFrame) -> dict[str, float | str]:
     valid = feature_frame.dropna(subset=FEATURE_COLUMNS)
     if valid.empty:
-        raise ValueError("not enough feature history to describe the current regime")
+        raise ValueError("可用特征历史不足，无法描述当前市场状态")
 
     latest = valid.iloc[-1]
     vol_rank = float(valid["realized_vol_pct"].rank(pct=True).iloc[-1])
 
     if latest["trend_pct"] >= 5:
-        trend_label = "bullish"
+        trend_label = "看涨"
     elif latest["trend_pct"] <= -5:
-        trend_label = "bearish"
+        trend_label = "看跌"
     else:
-        trend_label = "sideways"
+        trend_label = "震荡"
 
     if vol_rank >= 0.66:
-        vol_label = "high-vol"
+        vol_label = "高波动"
     elif vol_rank <= 0.33:
-        vol_label = "low-vol"
+        vol_label = "低波动"
     else:
-        vol_label = "mid-vol"
+        vol_label = "中等波动"
 
     rsi = float(latest["rsi"])
     if rsi >= 60:
-        momentum_label = "overbought"
+        momentum_label = "偏热"
     elif rsi <= 40:
-        momentum_label = "oversold"
+        momentum_label = "偏冷"
     else:
-        momentum_label = "balanced"
+        momentum_label = "均衡"
 
     return {
         "regime_label": f"{trend_label} / {vol_label} / {momentum_label}",
@@ -128,7 +128,7 @@ def select_similar_windows(
     current_row = feature_frame.iloc[-1]
     candidates = feature_frame.iloc[:-horizon_bars].dropna(subset=FEATURE_COLUMNS).copy()
     if candidates.empty:
-        raise ValueError("not enough fully-featured historical windows to compare against")
+        raise ValueError("历史样本不足，无法找到可比较的完整市场窗口")
 
     feature_slice = candidates[FEATURE_COLUMNS]
     means = feature_slice.mean()

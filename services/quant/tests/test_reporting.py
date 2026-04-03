@@ -29,11 +29,11 @@ def test_annotate_summary_adds_scenario_and_pair_interval():
     annotated = annotate_summary(_summary_frame())
     assert "scenario" in annotated.columns
     assert "pair_interval" in annotated.columns
-    assert annotated.loc[0, "scenario"] == "neutral/balanced"
+    assert annotated.loc[0, "scenario"] == "中性/均衡"
     assert annotated.loc[0, "pair_interval"] == "BTC/USDC 4h"
 
 
 def test_build_pair_comparison_table_filters_and_sorts():
     table = build_pair_comparison_table(_summary_frame(), pair="BTC/USDC")
-    assert list(table["pair"].unique()) == ["BTC/USDC"]
-    assert list(table["scenario"]) == ["bullish/carry", "neutral/balanced"]
+    assert list(table["交易对"].unique()) == ["BTC/USDC"]
+    assert list(table["场景"]) == ["看涨/收益优先", "中性/均衡"]

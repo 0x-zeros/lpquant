@@ -156,7 +156,7 @@ def _evaluate_candidate(
         )
 
     if not window_rows:
-        raise ValueError("candidate evaluation produced no valid walk-forward windows")
+        raise ValueError("候选区间评估后没有得到有效的前瞻样本窗口")
 
     window_frame = pd.DataFrame.from_records(window_rows)
     return {

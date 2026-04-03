@@ -5,54 +5,55 @@ from pathlib import Path
 
 import pandas as pd
 
+from app.research.labels import format_metric, format_source, rename_for_display
 from app.research.service import run_study
 from app.research.types import StudyRequest
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Research-first LP interval optimizer using Binance history and walk-forward studies.",
+        description="使用 Binance 历史数据与滚动前瞻评估的 LP 区间研究优化器。",
     )
-    parser.add_argument("--pair", required=True, help="Trading pair, for example BTC/USDC or SUIUSDC")
-    parser.add_argument("--interval", default="4h", help="Binance interval, such as 1h, 4h, 1d")
-    parser.add_argument("--days", type=int, default=365, help="How many calendar days of history to load")
+    parser.add_argument("--pair", required=True, help="交易对，例如 BTC/USDC 或 SUIUSDC")
+    parser.add_argument("--interval", default="4h", help="Binance K 线周期，例如 1h、4h、1d")
+    parser.add_argument("--days", type=int, default=365, help="加载多少天的历史数据")
     parser.add_argument(
         "--lookback-bars",
         type=int,
         default=90,
-        help="How many bars define the current market regime",
+        help="用多少根 K 线定义当前市场状态",
     )
     parser.add_argument(
         "--horizon-bars",
         type=int,
         default=30,
-        help="How many forward bars each historical study window evaluates",
+        help="每个历史样本向前评估多少根 K 线",
     )
-    parser.add_argument("--capital", type=float, default=10_000.0, help="Capital used in backtests")
-    parser.add_argument("--fee-rate", type=float, default=0.003, help="Pool fee rate, e.g. 0.003")
+    parser.add_argument("--capital", type=float, default=10_000.0, help="回测使用的资金规模")
+    parser.add_argument("--fee-rate", type=float, default=0.003, help="池子手续费率，例如 0.003")
     parser.add_argument(
         "--view",
         choices=["neutral", "bullish", "bearish"],
         default="neutral",
-        help="Directional belief used to bias interval centers",
+        help="方向判断，用来调整区间中心；可选 neutral、bullish、bearish",
     )
     parser.add_argument(
         "--objective",
         choices=["balanced", "carry", "defensive"],
         default="balanced",
-        help="Scoring profile for interval ranking",
+        help="区间排序目标；可选 balanced、carry、defensive",
     )
     parser.add_argument(
         "--neighbors",
         type=int,
         default=120,
-        help="How many similar historical regime windows to include",
+        help="纳入多少个相似历史市场窗口",
     )
-    parser.add_argument("--top-k", type=int, default=10, help="How many ranked candidates to print")
+    parser.add_argument("--top-k", type=int, default=10, help="打印前多少个候选区间")
     parser.add_argument(
         "--output",
         type=str,
-        help="Optional CSV path for the full candidate ranking table",
+        help="可选，输出完整候选排名表的 CSV 路径",
     )
     return parser
 
@@ -62,19 +63,19 @@ def _format_dataset_summary(result) -> str:
     start = pd.to_datetime(frame["timestamp"].iloc[0], unit="ms", utc=True)
     end = pd.to_datetime(frame["timestamp"].iloc[-1], unit="ms", utc=True)
     return (
-        f"Pair: {result.dataset.pair.symbol}\n"
-        f"Bars: {len(frame)} | Interval: {result.dataset.interval} | Source: {result.dataset.source}\n"
-        f"Window: {start:%Y-%m-%d %H:%M UTC} -> {end:%Y-%m-%d %H:%M UTC}"
+        f"交易对：{result.dataset.pair.symbol}\n"
+        f"K线数量：{len(frame)} | 周期：{result.dataset.interval} | 数据源：{format_source(result.dataset.source)}\n"
+        f"时间窗口：{start:%Y-%m-%d %H:%M UTC} -> {end:%Y-%m-%d %H:%M UTC}"
     )
 
 
 def _format_regime_summary(current_regime: dict[str, float | str]) -> str:
     return (
-        f"Current regime: {current_regime['regime_label']}\n"
-        f"Trend: {current_regime['trend_pct']}% | Realized vol: {current_regime['realized_vol_pct']}% | "
-        f"Downside vol: {current_regime['downside_vol_pct']}%\n"
-        f"Distance to SMA: {current_regime['distance_to_sma_pct']}% | "
-        f"Drawdown: {current_regime['drawdown_pct']}% | RSI: {current_regime['rsi']}"
+        f"当前市场状态：{current_regime['regime_label']}\n"
+        f"趋势：{current_regime['trend_pct']}% | 已实现波动率：{current_regime['realized_vol_pct']}% | "
+        f"下行波动率：{current_regime['downside_vol_pct']}%\n"
+        f"相对均线偏离：{current_regime['distance_to_sma_pct']}% | "
+        f"回撤：{current_regime['drawdown_pct']}% | RSI：{current_regime['rsi']}"
     )
 
 
@@ -97,7 +98,7 @@ def main() -> None:
     result = run_study(request)
     print(_format_dataset_summary(result))
     if result.dataset.notes:
-        print("\nNotes:")
+        print("\n说明：")
         for note in result.dataset.notes:
             print(f"- {note}")
 
@@ -122,8 +123,9 @@ def main() -> None:
         "upside_breach_rate",
         "sample_size",
     ]
-    print("Top interval candidates:")
-    print(result.rankings[ranking_columns].head(request.top_k).to_string(index=False))
+    print("候选区间 Top 排名：")
+    ranking_table = rename_for_display(result.rankings[ranking_columns].head(request.top_k))
+    print(ranking_table.to_string(index=False))
 
     similar_columns = [
         "similarity_rank",
@@ -137,8 +139,9 @@ def main() -> None:
         "distance",
     ]
     print()
-    print("Closest historical regime windows:")
-    print(result.similar_windows[similar_columns].head(10).to_string(index=False))
+    print("最接近的历史市场窗口：")
+    similar_table = rename_for_display(result.similar_windows[similar_columns].head(10))
+    print(similar_table.to_string(index=False))
 
     if args.output:
         output_path = Path(args.output).expanduser()
@@ -148,8 +151,8 @@ def main() -> None:
         windows_path = output_path.with_name(f"{output_path.stem}.windows.csv")
         result.similar_windows.to_csv(windows_path, index=False)
         print()
-        print(f"Saved rankings to {output_path}")
-        print(f"Saved similar windows to {windows_path}")
+        print(f"候选排名已保存到：{output_path}")
+        print(f"相似窗口已保存到：{windows_path}")
 
 
 if __name__ == "__main__":

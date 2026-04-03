@@ -20,8 +20,8 @@ def run_study(request: StudyRequest) -> StudyResult:
     min_rows = request.lookback_bars + request.horizon_bars + max(request.neighbors, 20)
     if len(dataset.frame) < min_rows:
         raise ValueError(
-            f"not enough bars for this study: got {len(dataset.frame)}, need about {min_rows}; "
-            "increase --days or lower lookback/horizon/neighbors"
+            f"当前研究所需 K 线不足：现有 {len(dataset.frame)} 条，约需要 {min_rows} 条；"
+            "请增大 --days，或降低 lookback/horizon/neighbors"
         )
 
     feature_frame = build_feature_frame(

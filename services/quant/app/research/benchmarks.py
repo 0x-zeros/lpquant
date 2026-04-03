@@ -7,6 +7,7 @@ from typing import Callable
 import pandas as pd
 
 from app.research.artifacts import save_benchmark_bundle
+from app.research.labels import format_scenario, format_source
 from app.research.service import run_study
 from app.research.types import StudyRequest, StudyResult
 
@@ -32,19 +33,19 @@ SCENARIOS: list[tuple[str, str, str, str]] = [
         "neutral_balanced",
         "neutral",
         "balanced",
-        "Base case: current regime with no directional bias and a balanced risk/return objective.",
+        "基准情景：不带方向偏见，使用均衡型收益/风险目标。",
     ),
     (
         "bullish_carry",
         "bullish",
         "carry",
-        "Express a bullish view and favor narrower, higher-carry intervals if the regime supports it.",
+        "看涨情景：如果当前状态支持，优先考虑更窄、收益更高的区间。",
     ),
     (
         "bearish_defensive",
         "bearish",
         "defensive",
-        "Stress-test downside protection with lower tolerance for exits and drawdowns.",
+        "防御情景：重点检验下跌保护，对出圈和回撤的容忍度更低。",
     ),
 ]
 
@@ -88,9 +89,10 @@ def _study_summary_row(case: BenchmarkCase, study: StudyResult) -> dict[str, obj
         "interval": case.request.interval,
         "view": case.request.view,
         "objective": case.request.objective,
-        "scenario": f"{case.request.view}/{case.request.objective}",
+        "scenario": format_scenario(case.request.view, case.request.objective),
         "pair_interval": f"{case.request.pair} {case.request.interval}",
         "source": study.dataset.source,
+        "source_label": format_source(study.dataset.source),
         "bars": len(study.dataset.frame),
         "regime_label": regime["regime_label"],
         "trend_pct": regime["trend_pct"],
@@ -123,10 +125,11 @@ def _rankings_with_context(case: BenchmarkCase, study: StudyResult) -> pd.DataFr
     rankings.insert(2, "interval", case.request.interval)
     rankings.insert(3, "view", case.request.view)
     rankings.insert(4, "objective", case.request.objective)
-    rankings.insert(5, "scenario", f"{case.request.view}/{case.request.objective}")
+    rankings.insert(5, "scenario", format_scenario(case.request.view, case.request.objective))
     rankings.insert(6, "pair_interval", f"{case.request.pair} {case.request.interval}")
     rankings.insert(7, "source", study.dataset.source)
-    rankings.insert(8, "regime_label", study.current_regime["regime_label"])
+    rankings.insert(8, "source_label", format_source(study.dataset.source))
+    rankings.insert(9, "regime_label", study.current_regime["regime_label"])
     return rankings
 
 

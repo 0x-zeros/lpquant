@@ -1,158 +1,160 @@
-# LPQuant Research Roadmap
+# LPQuant Research Roadmap / 研究路线
 
-## New project definition
+## 项目重新定义
 
-This repository should now be treated as a serious LP research workspace, not a hackathon demo.
+这个仓库现在应该被当成一个正式的 LP research workspace，而不是 hackathon demo。
 
-The real question is no longer "which of these few candidate bands looks nice on a page?"
+我们真正要回答的问题，不再是：
 
-The real question is:
+“这几个 candidate band 哪个在页面上看起来更合理？”
 
-> Given a trading pair, the current price, the current market regime, and my directional view, what LP interval maximizes expected profit after accounting for range exits, inventory drift, and reallocation friction?
+而是：
 
-That means the target function should move toward:
+> 给定一个 trading pair、当前价格、当前 market regime，以及我的 directional view，什么样的 LP interval 能在控制风险的前提下，把 expected profit 做到最好？
+
+更贴近赚钱目标的 target function 应该逐步靠近：
 
 `expected fee capture - LVR/adverse selection - impermanent loss - gas/rebalance cost - hedge/funding cost`
 
-under explicit constraints such as:
+同时加上明确的约束，例如：
 
-- maximum acceptable out-of-range probability
-- maximum acceptable drawdown or tail loss
-- maximum acceptable rebalance frequency
-- minimum acceptable capital efficiency
+- 最大可接受的 out-of-range probability
+- 最大可接受的 drawdown / tail loss
+- 最大可接受的 rebalance frequency
+- 最低可接受的 capital efficiency
 
-## Why the current architecture is no longer enough
+## 为什么现有结构不够
 
-The existing FastAPI engine is good for a demo because it:
+旧的 FastAPI engine 很适合 demo，因为它做的是：
 
-- generates a few hand-picked interval candidates
-- backtests them once
-- scores them with static profile weights
+- 生成少量 hand-picked interval candidates
+- 对这些 candidates 做一次 backtest
+- 用静态 profile weights 打分
 
-But for a research system that is meant to make money, it is missing several important layers:
+但如果这个系统的目标是赚钱，那它至少还缺下面这些层：
 
-- no regime conditioning
-- no dense search over interval width and center
-- no walk-forward evaluation anchored at many historical entry points
-- no explicit modeling of reset policy
-- no fee-share or pool microstructure model
-- no gas, hedge, funding, or LVR penalty model
+- regime conditioning
+- 对 interval width 和 center 的 dense search
+- 基于很多历史起点的 walk-forward evaluation
+- 明确的 reset policy modeling
+- fee share / pool microstructure modeling
+- gas、hedge、funding、LVR penalty
 
-So the system should evolve from a `candidate recommender` into an `LP policy lab`.
+所以系统定位应该从 `candidate recommender` 升级成 `LP policy lab`。
 
-## The right project shape
+## 推荐的项目形态
 
-For the next phase, Python should be the center of gravity.
+下一阶段，Python 应该是主轴。
 
-Recommended workflow order:
+推荐工作流顺序：
 
-1. Python library for reusable math and experiments
-2. CLI / light TUI for quick screening
-3. Notebook layer for hypothesis work
-4. Web UI only after the research workflow is already useful
+1. Python library，承载 reusable math 和 experiments
+2. CLI / light TUI，用来快速筛选
+3. notebook layer，用来做 hypothesis work
+4. Web UI 放到后面，等研究流程已经足够有用再说
 
-That is why this repo now includes `app.research`, a research-first module separate from the old API route.
+这也是为什么仓库里现在新增了 `app.research`，把研究层从旧 API route 里拆开。
 
-## First research loop
+## 第一阶段 research loop
 
-The first useful loop is:
+当前最有价值的一轮研究循环是：
 
-1. Pull pair history from Binance or construct it from Binance ratios
-2. Compute the current market regime from a lookback window
-3. Find historical windows that look similar to the current regime
-4. Sweep many interval widths and center offsets
-5. Run walk-forward backtests from those similar historical windows
-6. Rank intervals by a research objective such as `balanced`, `carry`, or `defensive`
-7. Export the full ranking table to CSV and keep iterating in notebooks
+1. 从 Binance 拉 pair history，或者用 Binance ratio 构造价格序列
+2. 用 lookback window 计算当前 market regime
+3. 找历史上与当前 regime 相似的窗口
+4. 扫描多组 interval width 和 center offset
+5. 对这些历史相似窗口做 walk-forward backtest
+6. 按 `balanced`、`carry`、`defensive` 这类 objective 排序
+7. 导出完整 ranking table 到 CSV，继续在 notebook 里深挖
 
-This is intentionally more useful than the old "generate three strategies and choose one" approach.
+这比旧的“生成三类策略再选一个”更像真正的研究工作。
 
-## How to think about the LP problem
+## 如何理解 LP interval 问题
 
-The LP interval problem is very close to order-book market making, but not identical.
+LP interval problem 和传统 order-book market making 很像，但不是完全等价。
 
-A useful mapping is:
+一个非常有用的 mapping 是：
 
 - interval center ~= reservation price
 - interval width ~= quoting spread
 - reset policy ~= quote update policy
-- LP inventory drift ~= market maker inventory risk
-- out-of-range event ~= losing both-sided quoting ability
+- LP inventory drift ~= inventory risk
+- out-of-range event ~= 失去双边报价能力
 
-This is an inference from market microstructure rather than a direct theorem, but it is a very productive mental model for research.
+这不是一个严格 theorem，而是一个很有研究价值的 microstructure 视角。
 
 ## Research priorities
 
-### Phase 1: do this now
+### Phase 1：现在先做
 
 - CEX-only price history
-- regime features: trend, volatility, downside volatility, drawdown, RSI, distance from moving average
+- regime features：trend、volatility、downside volatility、drawdown、RSI、distance from moving average
 - walk-forward interval sweeps
-- objective-function ranking
+- objective-based ranking
 - notebook-driven analysis
 
-### Phase 2: add next
+### Phase 2：接下来补
 
 - DEX pool state history
-- realized pool volume and fee-share estimation
-- tick-level or tick-density-aware modeling
-- gas and rebalance-cost accounting
-- multi-chain comparison for the same pair
+- realized pool volume 与 fee-share estimation
+- tick-level / tick-density-aware modeling
+- gas 与 rebalance cost accounting
+- 同一个 pair 的 multi-chain comparison
 
-### Phase 3: add once the simulator is trustworthy
+### Phase 3：等 simulator 足够可信后再上
 
-- hedge leg on CEX perpetuals or spot
+- CEX perpetual / spot hedge leg
 - funding-rate-aware LP + hedge studies
-- LVR proxy and adverse-selection penalties
-- position reset policies and trigger optimization
+- LVR proxy 与 adverse selection penalty
+- reset policy 与 trigger optimization
 
-## Where AI should and should not be used
+## AI 应该怎么用
 
-AI can help, but it should enter in the right order.
+AI 可以用，但顺序要对。
 
-### Good near-term uses
+### 适合尽快上的方向
 
-- time-series forecasting models as one input into interval placement
-- regime clustering and similarity search
-- surrogate models that approximate expensive backtests
-- experiment summarization and research note generation
+- time-series forecasting model，作为 interval placement 的一个输入
+- regime clustering 与 similarity search
+- surrogate model，用来近似昂贵的 backtest
+- experiment summarization 与 research note generation
 
-### Uses to delay
+### 先不要急着上的方向
 
-- full reinforcement learning before the simulator is realistic
-- LLM-based "pick a band" decision systems
-- fancy agents on top of weak market assumptions
+- 在 simulator 还不真实时就直接上 reinforcement learning
+- 让 LLM 直接“pick a band”
+- 在 market assumptions 很弱的时候堆 fancy agent
 
-The risk with jumping straight to RL is that it will overfit a simplified reward function and teach you the wrong policy.
+风险在于：如果 reward function 还是简化版，RL 会把错误目标学得非常漂亮。
 
-## What the literature suggests
+## 文献给我们的启发
 
-Three ideas from recent LP literature matter immediately:
+有三条线现在就值得参考：
 
-- Strategic liquidity provision is fundamentally dynamic: narrow bands pay more if price stays inside, but resets and reallocation costs matter. Source: [Strategic Liquidity Provision in Uniswap v3](https://arxiv.org/abs/2106.12033)
-- LP interval choice can be treated as an online learning problem instead of a one-shot static optimizer. Source: [Uniswap Liquidity Provision: An Online Learning Approach](https://research.google/pubs/uniswap-liquidity-provision-an-online-learning-approach/)
-- LP PnL is not just fees versus impermanent loss; adverse selection and stale-price pickup matter. Source: [Automated Market Making and Loss-Versus-Rebalancing](https://arxiv.org/abs/2208.06046)
+- LP 是一个动态决策问题，窄区间收益高，但 reset 和 reallocation cost 不能忽略。参考：[Strategic Liquidity Provision in Uniswap v3](https://arxiv.org/abs/2106.12033)
+- interval choice 可以被看成 online learning，而不是一次性的 static optimization。参考：[Uniswap Liquidity Provision: An Online Learning Approach](https://research.google/pubs/uniswap-liquidity-provision-an-online-learning-approach/)
+- LP PnL 不只是 fee vs IL，还要考虑 adverse selection 和 stale-price pickup，也就是 LVR。参考：[Automated Market Making and Loss-Versus-Rebalancing](https://arxiv.org/abs/2208.06046)
 
-For AI specifically, modern time-series foundation models are promising as forecasting inputs, not as full LP policies by themselves:
+如果是 AI / forecasting 这条线，目前更适合把 time-series foundation model 当作输入特征，而不是直接把它当 LP policy：
 
 - [Chronos: Learning the Language of Time Series](https://arxiv.org/abs/2403.07815)
 - [A decoder-only foundation model for time-series forecasting](https://proceedings.mlr.press/v235/das24c.html)
 
-## Immediate next experiments
+## 立即值得做的 baseline experiments
 
-For now, the most valuable experiments are probably:
+先从下面这组 baseline 开始最稳：
 
 1. `BTC/USDC` on `4h` and `1d`
 2. `SOL/USDC` on `4h`
 3. `SUI/USDC` on `4h`
 
-For each pair, run:
+每个 pair 先跑三种情景：
 
 - neutral view + balanced objective
 - bullish view + carry objective
 - bearish view + defensive objective
 
-Then compare:
+然后重点比较：
 
 - best width
 - best center shift
@@ -161,11 +163,11 @@ Then compare:
 - p10 LP-vs-HODL
 - downside breach rate
 
-If the rankings are unstable across neighboring samples, that is already a strong research result: it means the policy needs better regime conditioning or stricter risk constraints.
+如果相邻样本下 ranking 很不稳定，这本身就是一个很重要的 research signal：说明 policy 还需要更强的 regime conditioning，或者更严格的风险约束。
 
 ## Example command
 
-From `services/quant`:
+在 `services/quant` 目录下运行：
 
 ```bash
 uv run python -m app.research.cli \
@@ -180,18 +182,18 @@ uv run python -m app.research.cli \
   --output research_runs/sui_usdc_4h.csv
 ```
 
-## Notebook entry point
+## Notebook 入口
 
-If you want to move from one-off CLI runs into repeatable research sessions, start here:
+如果你要从一次性 CLI run 进入可重复的 research session，建议直接从这里开始：
 
 - Notebook: [/Users/lilith/dev/web3/lpquant/services/quant/notebooks/01_lp_baseline_suite.ipynb](/Users/lilith/dev/web3/lpquant/services/quant/notebooks/01_lp_baseline_suite.ipynb)
-- Notebook notes: [/Users/lilith/dev/web3/lpquant/services/quant/notebooks/README.md](/Users/lilith/dev/web3/lpquant/services/quant/notebooks/README.md)
-- Experiment logging: [/Users/lilith/dev/web3/lpquant/docs/experiment-logging.md](/Users/lilith/dev/web3/lpquant/docs/experiment-logging.md)
+- Notebook 说明: [/Users/lilith/dev/web3/lpquant/services/quant/notebooks/README.md](/Users/lilith/dev/web3/lpquant/services/quant/notebooks/README.md)
+- Experiment logging 规范: [/Users/lilith/dev/web3/lpquant/docs/experiment-logging.md](/Users/lilith/dev/web3/lpquant/docs/experiment-logging.md)
 
-The notebook imports the default `BTC/USDC`, `SOL/USDC`, and `SUI/USDC` baseline suite from `app.research.benchmarks`, runs the full matrix, and saves clean CSV outputs under `research_runs/`.
+这个 notebook 会导入 `app.research.benchmarks` 里的默认 baseline suite，运行完整 case matrix，并把结果保存到 `research_runs/`。
 
-## Important caveat
+## 当前 caveat
 
-The current research module still uses a fee proxy, not true realized LP fee share.
+目前 research module 里的 fee 仍然是 fee proxy，而不是真正的 realized LP fee share。
 
-So the new tool is already useful for screening and hypothesis generation, but it is **not** yet a production-grade live trading policy engine.
+所以这套工具已经适合做 screening、ranking 和 hypothesis generation，但它还不是 production-grade 的 live trading policy engine。
