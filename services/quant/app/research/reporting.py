@@ -1,12 +1,57 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import Iterable
 
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 import numpy as np
 import pandas as pd
 
 from app.research.labels import format_metric, format_scenario, rename_for_display
+
+CJK_FONT_CANDIDATES = [
+    # macOS
+    "Hiragino Sans GB",
+    "PingFang SC",
+    "Songti SC",
+    "STHeiti",
+    "Arial Unicode MS",
+    # Windows
+    "Microsoft YaHei",
+    "Microsoft JhengHei",
+    "DengXian",
+    "SimHei",
+    "SimSun",
+    # Linux / cross-platform CJK packs
+    "Noto Sans CJK SC",
+    "Noto Sans CJK TC",
+    "Noto Sans CJK JP",
+    "WenQuanYi Zen Hei",
+    "Source Han Sans SC",
+    "Source Han Sans CN",
+]
+
+
+@lru_cache(maxsize=1)
+def _configure_cjk_font() -> str:
+    """配置 matplotlib 的 CJK font fallback，避免中文 glyph 丢失。"""
+    installed_fonts = {font.name for font in font_manager.fontManager.ttflist}
+    selected_font = next(
+        (font_name for font_name in CJK_FONT_CANDIDATES if font_name in installed_fonts),
+        "DejaVu Sans",
+    )
+
+    existing_fonts = list(plt.rcParams.get("font.sans-serif", []))
+    merged_fonts: list[str] = []
+    for font_name in [selected_font, *CJK_FONT_CANDIDATES, *existing_fonts, "DejaVu Sans"]:
+        if font_name not in merged_fonts:
+            merged_fonts.append(font_name)
+
+    plt.rcParams["font.family"] = "sans-serif"
+    plt.rcParams["font.sans-serif"] = merged_fonts
+    plt.rcParams["axes.unicode_minus"] = False
+    return selected_font
 
 
 def annotate_summary(summary: pd.DataFrame) -> pd.DataFrame:
@@ -69,6 +114,7 @@ def plot_summary_metric_bars(
     if pivot.empty:
         raise ValueError("summary 为空，没有可绘制的数据")
 
+    _configure_cjk_font()
     fig, ax = plt.subplots(figsize=figsize)
     pivot.plot(kind="bar", ax=ax)
     metric_label = format_metric(metric)
@@ -93,6 +139,7 @@ def plot_summary_metric_heatmap(
     if pivot.empty:
         raise ValueError("summary 为空，没有可绘制的数据")
 
+    _configure_cjk_font()
     fig, ax = plt.subplots(figsize=figsize)
     matrix = pivot.to_numpy(dtype=float)
     image = ax.imshow(matrix, aspect="auto", cmap=cmap)
@@ -126,6 +173,7 @@ def plot_study_candidate_frontier(
     if rankings.empty:
         raise ValueError("rankings 为空，没有可绘制的数据")
 
+    _configure_cjk_font()
     fig, ax = plt.subplots(figsize=figsize)
     scatter = ax.scatter(
         rankings[x],

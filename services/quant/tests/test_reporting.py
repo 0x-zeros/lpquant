@@ -1,6 +1,7 @@
 import pandas as pd
+from matplotlib import pyplot as plt
 
-from app.research.reporting import annotate_summary, build_pair_comparison_table
+from app.research.reporting import _configure_cjk_font, annotate_summary, build_pair_comparison_table
 
 
 def _summary_frame() -> pd.DataFrame:
@@ -40,3 +41,13 @@ def test_build_pair_comparison_table_filters_and_sorts():
         "bullish / 看涨 | carry / 收益优先",
         "neutral / 中性 | balanced / 均衡",
     ]
+
+
+def test_configure_cjk_font_sets_sans_serif_fallbacks():
+    _configure_cjk_font.cache_clear()
+    selected_font = _configure_cjk_font()
+
+    assert isinstance(selected_font, str)
+    assert plt.rcParams["font.family"][0] == "sans-serif"
+    assert "DejaVu Sans" in plt.rcParams["font.sans-serif"]
+    assert plt.rcParams["axes.unicode_minus"] is False
