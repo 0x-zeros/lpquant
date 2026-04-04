@@ -15,6 +15,7 @@ uv run jupyter lab
 
 - `notebooks/01_lp_baseline_suite.ipynb`
 - `notebooks/02_coverage_constrained_interval.ipynb`
+- `notebooks/03_single_asset_quant_research.ipynb`
 - logging convention: `/Users/lilith/dev/web3/lpquant/docs/experiment-logging.md`
 
 ## Starter notebook 会做什么
@@ -32,6 +33,13 @@ baseline notebook 会：
 - 固定一个 pair，比较多个 `holding period`
 - 只研究一个目标：在 coverage 约束下找到最窄价格区间
 - 更适合 month / two-month / one-year 这种 period-based 区间研究
+
+`single asset quant` notebook 会：
+
+- 只指定一个币种，例如 `BTC` 或 `SUI`
+- 从 Binance 路线获取价格数据并自动处理 direct / ratio / proxy
+- 画出趋势、波动、回撤、动量、分布和自相关图
+- 配合中文说明与论文链接，适合做单币的第一轮基本面以外的量化体检
 
 ## 输出内容
 

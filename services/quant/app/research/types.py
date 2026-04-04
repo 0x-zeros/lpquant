@@ -87,3 +87,26 @@ class CoverageStudyResult:
     return_stats: dict[str, float]
     best_interval: dict[str, float | str]
     frontier: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class AssetDiagnosticsRequest:
+    asset: str
+    quote: str = "USDC"
+    interval: str = "1d"
+    days: int = 730
+    horizon_days: tuple[int, ...] = (7, 30, 90, 180)
+    autocorr_lags: tuple[int, ...] = (1, 2, 3, 5, 10, 20)
+
+
+@dataclass
+class AssetDiagnosticsResult:
+    request: AssetDiagnosticsRequest
+    dataset: PriceDataset
+    window_config: pd.DataFrame
+    feature_frame: pd.DataFrame
+    regime_summary: dict[str, float | str]
+    snapshot: pd.DataFrame
+    return_stats: pd.DataFrame
+    horizon_returns: pd.DataFrame
+    autocorrelation: pd.DataFrame
