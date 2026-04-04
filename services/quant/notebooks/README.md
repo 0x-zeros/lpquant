@@ -30,8 +30,9 @@ baseline notebook 会：
 
 `coverage constrained` notebook 会：
 
-- 固定一个 pair，比较多个 `holding period`
-- 只研究一个目标：在 coverage 约束下找到最窄价格区间
+- 固定一个 pair，比较 `7/30/60/180/365` 等多个 `holding period`
+- 从 `50%` 开始扫描 coverage frontier，研究 coverage 与区间宽度的 trade-off
+- 给出各个 period 的最优区间推荐，以及一个当前参数下的整体最优区间推荐
 - 更适合 month / two-month / one-year 这种 period-based 区间研究
 
 `single asset quant` notebook 会：

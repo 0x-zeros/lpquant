@@ -75,7 +75,7 @@ class CoverageStudyRequest:
     days: int = 730
     holding_days: int = 30
     coverage_target_pct: float = 90.0
-    frontier_targets_pct: tuple[float, ...] = (70.0, 80.0, 85.0, 90.0, 95.0, 97.5)
+    frontier_targets_pct: tuple[float, ...] = (50.0, 60.0, 70.0, 80.0, 85.0, 90.0, 95.0, 97.5)
 
 
 @dataclass
@@ -87,6 +87,25 @@ class CoverageStudyResult:
     return_stats: dict[str, float]
     best_interval: dict[str, float | str]
     frontier: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class CoverageSweepRequest:
+    pair: str
+    interval: str = "1d"
+    days: int = 730
+    holding_days_list: tuple[int, ...] = (7, 30, 60, 180, 365)
+    coverage_targets_pct: tuple[float, ...] = (50.0, 60.0, 70.0, 80.0, 85.0, 90.0, 95.0, 97.5)
+    minimum_recommendation_coverage_pct: float = 80.0
+
+
+@dataclass
+class CoverageSweepResult:
+    request: CoverageSweepRequest
+    dataset: PriceDataset
+    frontier_grid: pd.DataFrame
+    period_recommendations: pd.DataFrame
+    global_recommendation: dict[str, float | str | bool]
 
 
 @dataclass(frozen=True)

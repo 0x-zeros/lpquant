@@ -129,6 +129,17 @@ COLUMN_LABELS = {
     "return_autocorr": "return autocorr / 收益自相关",
     "abs_return_autocorr": "abs return autocorr / 绝对收益自相关",
     "confidence_band": "confidence band / 置信带",
+    "coverage_norm": "coverage norm / 覆盖率归一化",
+    "width_norm": "width norm / 宽度归一化",
+    "ideal_distance": "ideal distance / 理想点距离",
+    "knee_score": "knee score / 拐点分数",
+    "efficiency_score": "efficiency score / 覆盖率宽度效率",
+    "recommendation_eligible": "eligible / 可进入推荐集",
+    "minimum_recommendation_coverage_pct": "minimum recommendation coverage (%) / 最低推荐覆盖率(%)",
+    "period_label": "period / 持有期标签",
+    "recommendation_reason": "recommendation reason / 推荐原因",
+    "is_period_recommendation": "period recommendation / period 最优推荐",
+    "is_global_recommendation": "global recommendation / 全局最优推荐",
 }
 
 

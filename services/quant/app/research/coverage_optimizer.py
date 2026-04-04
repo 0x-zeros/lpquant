@@ -166,3 +166,81 @@ def build_coverage_frontier(
     return pd.DataFrame.from_records(frontier_rows).sort_values("coverage_target_pct").reset_index(
         drop=True
     )
+
+
+def score_frontier_candidates(
+    frontier: pd.DataFrame,
+    *,
+    minimum_recommendation_coverage_pct: float = 80.0,
+) -> pd.DataFrame:
+    if frontier.empty:
+        raise ValueError("frontier 为空，无法打分")
+
+    scored = frontier.sort_values("coverage_target_pct").reset_index(drop=True).copy()
+    achieved = scored["achieved_coverage_pct"].astype(float)
+    width = scored["width_pct"].astype(float)
+
+    coverage_span = float(achieved.max() - achieved.min())
+    width_span = float(width.max() - width.min())
+
+    if coverage_span <= 1e-9:
+        coverage_norm = pd.Series(np.ones(len(scored), dtype=float))
+    else:
+        coverage_norm = (achieved - achieved.min()) / coverage_span
+
+    if width_span <= 1e-9:
+        width_norm = pd.Series(np.zeros(len(scored), dtype=float))
+    else:
+        width_norm = (width - width.min()) / width_span
+
+    ideal_distance = np.sqrt(width_norm**2 + (1.0 - coverage_norm) ** 2)
+
+    if len(scored) <= 1 or abs(float(coverage_norm.iloc[-1]) - float(coverage_norm.iloc[0])) <= 1e-9:
+        knee_score = np.zeros(len(scored), dtype=float)
+    else:
+        line_width = np.interp(
+            coverage_norm,
+            [float(coverage_norm.iloc[0]), float(coverage_norm.iloc[-1])],
+            [float(width_norm.iloc[0]), float(width_norm.iloc[-1])],
+        )
+        knee_score = line_width - width_norm
+
+    scored["coverage_norm"] = np.round(coverage_norm, 4)
+    scored["width_norm"] = np.round(width_norm, 4)
+    scored["ideal_distance"] = np.round(ideal_distance, 4)
+    scored["knee_score"] = np.round(knee_score, 4)
+    scored["efficiency_score"] = np.round(
+        achieved / width.replace(0.0, np.nan),
+        4,
+    )
+    scored["recommendation_eligible"] = achieved >= float(minimum_recommendation_coverage_pct)
+    scored["minimum_recommendation_coverage_pct"] = round(float(minimum_recommendation_coverage_pct), 2)
+    return scored
+
+
+def select_recommended_candidate(
+    scored_frontier: pd.DataFrame,
+) -> dict[str, float | str | bool]:
+    if scored_frontier.empty:
+        raise ValueError("scored_frontier 为空，无法推荐区间")
+
+    eligible = scored_frontier[scored_frontier["recommendation_eligible"]].copy()
+    if eligible.empty:
+        eligible = scored_frontier.copy()
+
+    recommended = eligible.sort_values(
+        [
+            "ideal_distance",
+            "width_pct",
+            "out_of_range_pct",
+            "coverage_target_pct",
+            "knee_score",
+        ],
+        ascending=[True, True, True, False, False],
+    ).iloc[0]
+
+    row = recommended.to_dict()
+    row["recommendation_reason"] = (
+        "closest to ideal high-coverage low-width trade-off / 最接近高覆盖率与低宽度平衡点"
+    )
+    return row

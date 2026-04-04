@@ -96,10 +96,17 @@ uv run python -m app.research.coverage_cli \
 
 先对同一个 pair 比较不同 `holding period`：
 
+- `7 days`
 - `30 days`
 - `60 days`
 - `180 days`
 - `365 days`
+
+coverage target 建议至少从 `50%` 开始往上扫，而不是只看 `70%+`。原因是：
+
+- `50%~70%` 区间能告诉你 aggressive 缩窄区间时，宽度到底能收缩多少
+- `80%+` 更接近真实可执行的 production 区间
+- 这样你才能真正看到 `coverage / width` 的 trade-off 曲线
 
 然后观察：
 
@@ -111,3 +118,17 @@ uv run python -m app.research.coverage_cli \
 - `upside_touch_pct`
 
 如果 holding period 一拉长，最优区间迅速变宽，那就说明这个 pair 的长期稳定性并不支持特别窄的 LP 区间。
+
+## 当前推荐 heuristic
+
+如果你还没有明确给出“至少要多少覆盖率”这种 production constraint，可以先用一个简单而可解释的 heuristic：
+
+1. 先扫完整 frontier，例如 `50% -> 97.5%`
+2. 把 `80%` 设成默认的最低推荐覆盖率门槛
+3. 在满足这个门槛的点里，选出最接近 `高 coverage + 低 width` 理想点的那个
+
+这样做的原因是：
+
+- 只看最窄区间，会很容易掉进 `50% coverage` 这种虽然窄但太容易出区间的解
+- 只看最高 coverage，又会把区间推得过宽
+- 用一个最低 coverage floor，再在里面找 trade-off，比较接近当前阶段的研究目标

@@ -49,7 +49,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--frontier-targets",
         type=_parse_targets,
-        default=(70.0, 80.0, 85.0, 90.0, 95.0, 97.5),
+        default=(50.0, 60.0, 70.0, 80.0, 85.0, 90.0, 95.0, 97.5),
         help="Coverage frontier / 想比较的 coverage target 列表，逗号分隔",
     )
     parser.add_argument(

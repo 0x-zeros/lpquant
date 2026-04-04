@@ -9,7 +9,7 @@ from app.research.benchmarks import (
     save_benchmark_suite,
 )
 from app.research.artifacts import create_experiment_dir, save_study_artifacts
-from app.research.coverage_service import run_coverage_study
+from app.research.coverage_service import run_coverage_study, run_coverage_sweep
 from app.research.labels import (
     format_metric,
     format_objective,
@@ -21,6 +21,8 @@ from app.research.labels import (
 from app.research.reporting import (
     build_pair_comparison_table,
     plot_coverage_frontier,
+    plot_coverage_period_heatmap,
+    plot_coverage_period_frontiers,
     plot_study_candidate_frontier,
     plot_summary_metric_bars,
     plot_summary_metric_heatmap,
@@ -31,6 +33,8 @@ from app.research.types import (
     AssetDiagnosticsResult,
     CoverageStudyRequest,
     CoverageStudyResult,
+    CoverageSweepRequest,
+    CoverageSweepResult,
     StudyRequest,
     StudyResult,
 )
@@ -44,6 +48,8 @@ __all__ = [
     "build_pair_comparison_table",
     "CoverageStudyRequest",
     "CoverageStudyResult",
+    "CoverageSweepRequest",
+    "CoverageSweepResult",
     "create_experiment_dir",
     "format_metric",
     "format_objective",
@@ -52,12 +58,15 @@ __all__ = [
     "format_view",
     "plot_asset_diagnostics_dashboard",
     "plot_coverage_frontier",
+    "plot_coverage_period_frontiers",
+    "plot_coverage_period_heatmap",
     "plot_study_candidate_frontier",
     "plot_summary_metric_bars",
     "plot_summary_metric_heatmap",
     "rename_for_display",
     "run_asset_diagnostics",
     "run_coverage_study",
+    "run_coverage_sweep",
     "save_study_artifacts",
     "StudyRequest",
     "StudyResult",

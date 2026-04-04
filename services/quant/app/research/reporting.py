@@ -232,3 +232,86 @@ def plot_coverage_frontier(
 
     fig.tight_layout()
     return fig, ax
+
+
+def plot_coverage_period_frontiers(
+    frontier_grid: pd.DataFrame,
+    *,
+    figsize: tuple[float, float] = (9.0, 5.2),
+    title: str | None = None,
+) -> tuple[plt.Figure, plt.Axes]:
+    if frontier_grid.empty:
+        raise ValueError("frontier_grid 为空，没有可绘制的数据")
+
+    _configure_cjk_font()
+    fig, ax = plt.subplots(figsize=figsize)
+    ordered = frontier_grid.sort_values(["holding_days", "coverage_target_pct"])
+    for holding_days, frame in ordered.groupby("holding_days", sort=True):
+        ax.plot(
+            frame["coverage_target_pct"],
+            frame["width_pct"],
+            marker="o",
+            linewidth=1.8,
+            label=f"{holding_days}d",
+        )
+        recommendations = frame[frame["recommendation_eligible"]].copy()
+        if not recommendations.empty:
+            recommendation = recommendations.sort_values(
+                ["ideal_distance", "width_pct", "out_of_range_pct", "coverage_target_pct"],
+                ascending=[True, True, True, False],
+            ).iloc[0]
+            ax.scatter(
+                [recommendation["coverage_target_pct"]],
+                [recommendation["width_pct"]],
+                s=90,
+                edgecolors="black",
+                linewidths=0.8,
+            )
+
+    ax.set_xlabel(format_metric("coverage_target_pct"))
+    ax.set_ylabel(format_metric("width_pct"))
+    ax.set_title(title or "Coverage x range width frontiers / 覆盖率与区间宽度前沿")
+    ax.grid(alpha=0.25)
+    ax.legend(title="holding period")
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_coverage_period_heatmap(
+    frontier_grid: pd.DataFrame,
+    metric: str = "width_pct",
+    *,
+    figsize: tuple[float, float] = (9.0, 4.8),
+    title: str | None = None,
+    cmap: str = "viridis",
+) -> tuple[plt.Figure, plt.Axes]:
+    if frontier_grid.empty:
+        raise ValueError("frontier_grid 为空，没有可绘制的数据")
+
+    _configure_cjk_font()
+    pivot = (
+        frontier_grid.assign(period_label=frontier_grid["holding_days"].astype(str) + "d")
+        .pivot(index="period_label", columns="coverage_target_pct", values=metric)
+        .sort_index(key=lambda idx: idx.str.replace("d", "", regex=False).astype(int))
+    )
+
+    fig, ax = plt.subplots(figsize=figsize)
+    matrix = pivot.to_numpy(dtype=float)
+    image = ax.imshow(matrix, aspect="auto", cmap=cmap)
+    ax.set_xticks(np.arange(len(pivot.columns)))
+    ax.set_xticklabels([f"{value:.0f}%" for value in pivot.columns], rotation=0)
+    ax.set_yticks(np.arange(len(pivot.index)))
+    ax.set_yticklabels(pivot.index)
+    metric_label = format_metric(metric)
+    ax.set_title(title or f"{metric_label} 在 period x coverage 上的交叉研究")
+
+    for row in range(matrix.shape[0]):
+        for col in range(matrix.shape[1]):
+            value = matrix[row, col]
+            ax.text(col, row, f"{value:.1f}", ha="center", va="center", color="white")
+
+    ax.set_xlabel(format_metric("coverage_target_pct"))
+    ax.set_ylabel("holding period / 持有期")
+    fig.colorbar(image, ax=ax, shrink=0.85, label=metric_label)
+    fig.tight_layout()
+    return fig, ax
