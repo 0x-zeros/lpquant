@@ -17,6 +17,8 @@ __pycache__/
 *.pyc
 .venv/
 *.egg-info/
+**/.ipynb_checkpoints/
+Untitled*.ipynb
 
 # IDE
 .vscode/
@@ -32,3 +34,7 @@ pnpm-debug.log*
 # misc
 *.tsbuildinfo
 next-env.d.ts
+
+# research outputs
+services/quant/research_runs/
+services/quant/notebooks/research_runs/

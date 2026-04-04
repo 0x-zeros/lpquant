@@ -66,3 +66,24 @@ class StudyResult:
     current_regime: dict[str, float | str]
     similar_windows: pd.DataFrame
     rankings: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class CoverageStudyRequest:
+    pair: str
+    interval: str = "1d"
+    days: int = 730
+    holding_days: int = 30
+    coverage_target_pct: float = 90.0
+    frontier_targets_pct: tuple[float, ...] = (70.0, 80.0, 85.0, 90.0, 95.0, 97.5)
+
+
+@dataclass
+class CoverageStudyResult:
+    request: CoverageStudyRequest
+    dataset: PriceDataset
+    holding_bars: int
+    window_frame: pd.DataFrame
+    return_stats: dict[str, float]
+    best_interval: dict[str, float | str]
+    frontier: pd.DataFrame

@@ -198,3 +198,37 @@ def plot_study_candidate_frontier(
     fig.colorbar(scatter, ax=ax, shrink=0.85, label=format_metric(color))
     fig.tight_layout()
     return fig, ax
+
+
+def plot_coverage_frontier(
+    frontier: pd.DataFrame,
+    *,
+    figsize: tuple[float, float] = (8.0, 4.8),
+    title: str | None = None,
+) -> tuple[plt.Figure, plt.Axes]:
+    if frontier.empty:
+        raise ValueError("frontier 为空，没有可绘制的数据")
+
+    _configure_cjk_font()
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.plot(
+        frontier["coverage_target_pct"],
+        frontier["width_pct"],
+        marker="o",
+        linewidth=2,
+    )
+    ax.set_xlabel(format_metric("coverage_target_pct"))
+    ax.set_ylabel(format_metric("width_pct"))
+    ax.set_title(title or "Coverage frontier / 覆盖率前沿")
+    ax.grid(alpha=0.25)
+
+    for _, row in frontier.iterrows():
+        ax.annotate(
+            f"{row['width_pct']:.1f}%",
+            (row["coverage_target_pct"], row["width_pct"]),
+            xytext=(6, 6),
+            textcoords="offset points",
+        )
+
+    fig.tight_layout()
+    return fig, ax

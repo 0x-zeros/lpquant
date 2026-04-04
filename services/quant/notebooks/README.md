@@ -14,6 +14,7 @@ uv run jupyter lab
 然后打开：
 
 - `notebooks/01_lp_baseline_suite.ipynb`
+- `notebooks/02_coverage_constrained_interval.ipynb`
 - logging convention: `/Users/lilith/dev/web3/lpquant/docs/experiment-logging.md`
 
 ## Starter notebook 会做什么
@@ -25,6 +26,12 @@ baseline notebook 会：
 - 画出标准化的 pair / scenario 对比图
 - 把 suite 输出保存到带 timestamp 的 `research_runs/` bundle
 - 提供一个 single-pair deep-dive 区块，方便你继续改
+
+`coverage constrained` notebook 会：
+
+- 固定一个 pair，比较多个 `holding period`
+- 只研究一个目标：在 coverage 约束下找到最窄价格区间
+- 更适合 month / two-month / one-year 这种 period-based 区间研究
 
 ## 输出内容
 
